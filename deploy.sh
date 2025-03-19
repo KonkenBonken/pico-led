@@ -1,0 +1,1 @@
+ampy --port /dev/tty.usbmodem101 put pico

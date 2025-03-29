@@ -30,7 +30,5 @@ np = NeoPixel(Pin(LED_PIN), NUM_LEDS)
 while True:
     # Awaits UPD message
     data = s.recv(NUM_LEDS * 3)
-    leds = [(data[3 * i], data[3 * i + 1], data[3 * i + 2]) for i in range(NUM_LEDS)]
-    for i in range(NUM_LEDS):
-        np[i] = leds[i]
+    np.buf = bytearray(data)
     np.write()

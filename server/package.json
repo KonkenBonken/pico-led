@@ -2,5 +2,13 @@
   "type": "module",
   "dependencies": {
     "noisejs": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.13.14",
+    "@types/noisejs": "^2.1.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }

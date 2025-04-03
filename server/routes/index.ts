@@ -1,3 +1,4 @@
+import Animations, { animationExists } from '../animations';
 import controller from '../controller';
 
 const Status = (status: number) => new Response(null, { status });
@@ -14,6 +15,14 @@ Bun.serve({
             if (!Number.isInteger(value) || value < 0 || value >= 256)
                 return Status(400);
             controller.brightness = value;
+            return Status(200);
+        },
+
+        '/api/animations': () => Response.json(Object.keys(Animations)),
+        '/api/startAnimation/:name': req => {
+            const name = req.params.name;
+            if (!animationExists(name)) return Status(400);
+            controller.startAnimation(name);
             return Status(200);
         },
     },

@@ -26,3 +26,7 @@ const Animations = {
 } satisfies Record<string, () => Generator<Uint8ClampedArray, void, never>>;
 
 export default Animations;
+
+export function animationExists(name: string): name is keyof typeof Animations {
+    return Object.hasOwn(Animations, name);
+}

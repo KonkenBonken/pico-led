@@ -1,9 +1,13 @@
 <script setup lang="ts">
-console.log('Hello world!');
+import { ref, watch } from 'vue';
+
+const brightness = ref(16);
+watch(brightness, brightness => fetch('/api/brightness/' + brightness));
 </script>
 
 <template>
-    <h1>Hello world!</h1>
+    <h1>Led</h1>
+    <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
 </template>
 
 <style scoped>

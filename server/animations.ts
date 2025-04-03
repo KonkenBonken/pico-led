@@ -23,6 +23,17 @@ const Animations = {
         for (let i = 1; i < buffer.length; i += 3) buffer[i] = 255;
         yield buffer;
     },
+
+    *ColorSwipe() {
+        const buffer = new Uint8ClampedArray(LED_COUNT * 3);
+        while (true) {
+            const color = Math.random() * 256 ** 3;
+            for (let i = 0; i < buffer.length; i += 3) {
+                for (let j = 0; j < 3; j++) buffer[i + j] = (color >> (j * 8)) & 255;
+                yield buffer;
+            }
+        }
+    },
 } satisfies Record<string, () => Generator<Uint8ClampedArray, void, never>>;
 
 export default Animations;

@@ -27,8 +27,10 @@ class Controller {
     }
 
     iteration() {
-        const frame = this.frameGenerator?.next().value;
-        if (!frame) return this.stopLoop();
+        const _frame = this.frameGenerator?.next().value;
+        if (!_frame) return this.stopLoop();
+
+        const frame = new Uint8ClampedArray(_frame);
 
         for (let i = 0; i < FRAME_SIZE; i++)
             frame[i] = ((frame[i] ?? 0) * this.brightness) / 256;

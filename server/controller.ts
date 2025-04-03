@@ -9,7 +9,7 @@ const PORT = [12345, "192.168.86.21"] as const;
 class Controller {
     readonly socket = dgram.createSocket("udp4");
 
-    brightness = 1 / 16;
+    brightness = 16;
 
     private frameGenerator?: Generator<Uint8ClampedArray, void, never>;
     startAnimation(name: keyof typeof Animations) {
@@ -26,7 +26,7 @@ class Controller {
         if (!frame) return this.stopLoop();
 
         for (let i = 0; i < FRAME_SIZE; i++)
-            frame[i] = (frame[i] ?? 0) * this.brightness;
+            frame[i] = (frame[i] ?? 0) * this.brightness / 256;
 
         this.socket.send(frame, 0, FRAME_SIZE, ...PORT);
     }

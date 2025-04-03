@@ -5,7 +5,11 @@ const Status = (status: number) => new Response(null, { status });
 Bun.serve({
     port: 80,
     routes: {
-        '/brighness/:value': req => {
+        '/': () => new Response(Bun.file('routes/dist/index.html')),
+        '/assets/:file': req =>
+            new Response(Bun.file('routes/dist/assets/' + req.params.file)),
+
+        '/api/brightness/:value': req => {
             const value = +req.params.value;
             if (!Number.isInteger(value) || value < 0 || value >= 256)
                 return Status(400);

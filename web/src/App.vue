@@ -12,6 +12,7 @@ fetch('api/animations')
     .then(names => (animations.value = names));
 
 const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
+const turnOff = () => fetch('api/turnOff');
 </script>
 
 <template>
@@ -19,6 +20,7 @@ const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
     <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
     <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
     <button v-for="name in animations" @click="startAnimation(name)">{{ name }}</button>
+    <button @click="turnOff">Turn off</button>
 </template>
 
 <style scoped>

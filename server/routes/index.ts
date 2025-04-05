@@ -10,6 +10,11 @@ Bun.serve({
         '/assets/:file': req =>
             new Response(Bun.file('routes/dist/assets/' + req.params.file)),
 
+        '/api/turnOff': () => {
+            controller.turnOff();
+            return Status(200);
+        },
+
         '/api/brightness/:value': req => {
             const value = +req.params.value;
             if (!Number.isInteger(value) || value < 0 || value >= 256)

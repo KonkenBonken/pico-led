@@ -18,6 +18,14 @@ Bun.serve({
             return Status(200);
         },
 
+        '/api/speed/:value': req => {
+            const value = +req.params.value;
+            if (!Number.isInteger(value) || value < 0 || value >= 256)
+                return Status(400);
+            controller.speed = value;
+            return Status(200);
+        },
+
         '/api/animations': () => Response.json(Object.keys(Animations)),
         '/api/startAnimation/:name': req => {
             const name = req.params.name;

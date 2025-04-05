@@ -10,10 +10,11 @@ class Controller {
     readonly socket = dgram.createSocket('udp4');
 
     brightness = 16;
+    speed = 128;
 
     private frameGenerator?: Generator<Uint8ClampedArray, void, never>;
     startAnimation(name: keyof typeof Animations) {
-        this.frameGenerator = Animations[name]();
+        this.frameGenerator = Animations[name](this);
         this.beginLoop();
     }
 
@@ -40,3 +41,4 @@ class Controller {
 }
 
 export default new Controller();
+export type { Controller };

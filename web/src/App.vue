@@ -3,6 +3,8 @@ import { ref, watch } from 'vue';
 
 const brightness = ref(16);
 watch(brightness, brightness => fetch('/api/brightness/' + brightness));
+const speed = ref(128);
+watch(speed, speed => fetch('/api/speed/' + speed));
 
 const animations = ref<string[]>();
 fetch('api/animations')
@@ -15,6 +17,7 @@ const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
 <template>
     <h1>Led</h1>
     <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
+    <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
     <button v-for="name in animations" @click="startAnimation(name)">{{ name }}</button>
 </template>
 

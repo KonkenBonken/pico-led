@@ -46,6 +46,14 @@ class Controller {
     sendBuffer(buffer = new Uint8ClampedArray(FRAME_SIZE)) {
         this.socket.send(buffer, 0, FRAME_SIZE, 12345, '192.168.86.21');
     }
+
+    toJSON() {
+        return {
+            brightness: this.brightness,
+            speed: this.speed,
+            animations: Object.keys(Animations),
+        };
+    }
 }
 
 export default new Controller();

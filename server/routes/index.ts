@@ -15,6 +15,8 @@ Bun.serve({
             return Status(200);
         },
 
+        '/api/status': () => Response.json(controller),
+
         '/api/brightness/:value': req => {
             const value = +req.params.value;
             if (!Number.isInteger(value) || value < 0 || value >= 256)
@@ -31,7 +33,6 @@ Bun.serve({
             return Status(200);
         },
 
-        '/api/animations': () => Response.json(Object.keys(Animations)),
         '/api/startAnimation/:name': req => {
             const name = req.params.name;
             if (!animationExists(name)) return Status(400);

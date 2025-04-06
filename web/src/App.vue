@@ -11,6 +11,15 @@ fetch('api/animations')
     .then(res => res.json())
     .then(names => (animations.value = names));
 
+async function updateStatus() {
+    const res = await fetch('api/status').then(res => res.json());
+    brightness.value = res.brightness;
+    speed.value = res.speed;
+    animations.value = res.animations;
+}
+updateStatus();
+setInterval(updateStatus, 60e3);
+
 const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
 const turnOff = () => fetch('api/turnOff');
 </script>

@@ -5,6 +5,8 @@ const brightness = ref(16);
 watch(brightness, brightness => fetch('/api/brightness/' + brightness));
 const speed = ref(128);
 watch(speed, speed => fetch('/api/speed/' + speed));
+const color = ref();
+watch(color, color => fetch('/api/solidColor/' + color.slice(1)));
 
 const animations = ref<string[]>();
 fetch('api/animations')
@@ -30,6 +32,7 @@ const turnOff = () => fetch('api/turnOff');
     <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
     <button v-for="name in animations" @click="startAnimation(name)">{{ name }}</button>
     <button @click="turnOff">Turn off</button>
+    <input type="color" v-model="color" />
 </template>
 
 <style scoped>

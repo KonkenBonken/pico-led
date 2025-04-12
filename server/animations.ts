@@ -21,12 +21,6 @@ const Animations = {
         }
     },
 
-    *BlinkRed() {
-        const buffer = new Uint8ClampedArray(LED_COUNT * 3);
-        for (let i = 1; i < buffer.length; i += 3) buffer[i] = 255;
-        yield buffer;
-    },
-
     *ColorSwipe(c) {
         const buffer = new Uint8ClampedArray(LED_COUNT * 3);
         let frame = 1;

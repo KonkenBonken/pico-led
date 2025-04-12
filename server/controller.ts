@@ -23,6 +23,14 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         this.beginLoop();
     }
 
+    solidColor(color: number) {
+        this.stopLoop();
+        const buffer = new Uint8ClampedArray(LED_COUNT * 3);
+        for (let i = 0; i < buffer.length; i += 3)
+            for (let j = 0; j < 3; j++) buffer[i + j] = (color >> (j * 8)) & 255;
+        this.sendBuffer(buffer);
+    }
+
     private runningLoop?: NodeJS.Timeout;
     beginLoop() {
         this.runningLoop ??= setInterval(() => this.iteration(), 1000 / FRAME_RATE);

@@ -33,6 +33,14 @@ Bun.serve({
             return Status(200);
         },
 
+        '/api/solidColor/:value': req => {
+            const value = parseInt(req.params.value, 16);
+            if (!Number.isInteger(value) || value < 0 || value >= 2 ** 24)
+                return Status(400);
+            controller.solidColor(value);
+            return Status(200);
+        },
+
         '/api/startAnimation/:name': req => {
             const name = req.params.name;
             if (!animationExists(name)) return Status(400);

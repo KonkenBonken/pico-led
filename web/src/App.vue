@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import Peek from './components/Peek.vue';
 
 const brightness = ref(16);
 watch(brightness, brightness => fetch('/api/brightness/' + brightness));
 const speed = ref(128);
 watch(speed, speed => fetch('/api/speed/' + speed));
-const color = ref();
+const color = ref('#ff00aa');
 watch(color, color => fetch('/api/solidColor/' + color.slice(1)));
-
 const animations = ref<string[]>();
-fetch('api/animations')
-    .then(res => res.json())
-    .then(names => (animations.value = names));
 
 async function updateStatus() {
     const res = await fetch('api/status').then(res => res.json());
@@ -28,6 +25,7 @@ const turnOff = () => fetch('api/turnOff');
 
 <template>
     <h1>Led</h1>
+    <Peek />
     <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
     <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
     <button v-for="name in animations" @click="startAnimation(name)">{{ name }}</button>

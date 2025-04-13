@@ -2,6 +2,8 @@
 import { ref, watch } from 'vue';
 import Peek from './components/Peek.vue';
 
+const renderPeek = ref(false);
+
 const brightness = ref(16);
 watch(brightness, brightness => fetch('/api/brightness/' + brightness));
 const speed = ref(128);
@@ -25,11 +27,12 @@ const turnOff = () => fetch('api/turnOff');
 
 <template>
     <h1>Led</h1>
-    <Peek />
+    <Peek v-if="renderPeek" />
     <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
     <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
     <button v-for="name in animations" @click="startAnimation(name)">{{ name }}</button>
     <button @click="turnOff">Turn off</button>
+    <button @click="renderPeek = !renderPeek">Peek</button>
     <input type="color" v-model="color" />
 </template>
 

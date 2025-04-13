@@ -1,5 +1,6 @@
 import { EventEmitter } from 'stream';
 import Animations from './animations';
+import { rgbToGrb } from './utils';
 import dgram from 'dgram';
 
 const LED_COUNT = 180;
@@ -25,9 +26,12 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
 
     solidColor(color: number) {
         this.stopLoop();
-        const buffer = new Uint8ClampedArray(LED_COUNT * 3);
-        for (let i = 0; i < buffer.length; i += 3)
-            for (let j = 0; j < 3; j++) buffer[i + j] = (color >> (j * 8)) & 255;
+        const buffer = new Uint8ClampedArray(FRAME_SIZE);
+        for (let i = 0; i < buffer.length; i += 3) {
+            buffer[i + 0] = (color >> 16) & 255;
+            buffer[i + 1] = (color >> 8) & 255;
+            buffer[i + 2] = color & 255;
+        }
         this.sendBuffer(buffer);
     }
 
@@ -53,7 +57,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     }
 
     sendBuffer(buffer = new Uint8ClampedArray(FRAME_SIZE)) {
-        this.socket.send(buffer, 0, FRAME_SIZE, 12345, '192.168.86.21');
+        this.socket.send(rgbToGrb(buffer), 0, FRAME_SIZE, 12345, '192.168.86.21');
         this.emit('frame', buffer);
     }
 

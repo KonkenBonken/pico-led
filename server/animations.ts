@@ -12,9 +12,9 @@ const Animations = {
         while (true) {
             for (let i = 0; i < buffer.length; i += 3) {
                 const n = noise.simplex2(i / 100, frame);
-                buffer[i + 0] = n * (101 - 1) + 1; //G
-                buffer[i + 1] = n * (254 - 161) + 161; //R
-                buffer[i + 2] = n * 13; //B
+                buffer[i + 0] = n * (254 - 161) + 161;
+                buffer[i + 1] = n * (101 - 1) + 1;
+                buffer[i + 2] = n * 13;
             }
             yield buffer;
             frame += c.speed / 11e4;

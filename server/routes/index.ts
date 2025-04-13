@@ -1,5 +1,6 @@
 import { animationExists } from '../animations';
 import controller from '../controller';
+import { once } from 'events';
 
 const Status = (status: number) => new Response(null, { status });
 
@@ -52,11 +53,7 @@ Bun.serve({
         '/api/frameStream': () =>
             new Response(
                 (async function* () {
-                    while (true) {
-                        let { promise, resolve } = Promise.withResolvers();
-                        controller.once('frame', resolve);
-                        yield await promise;
-                    }
+                    while (true) yield (await once(controller, 'frame'))[0];
                 })()
             ),
     },

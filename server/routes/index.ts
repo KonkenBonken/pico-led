@@ -5,6 +5,7 @@ const Status = (status: number) => new Response(null, { status });
 
 Bun.serve({
     port: 80,
+    idleTimeout: 0,
     routes: {
         '/': () => new Response(Bun.file('routes/dist/index.html')),
         '/assets/:file': req =>

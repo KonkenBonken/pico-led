@@ -1,6 +1,6 @@
 import { EventEmitter } from 'stream';
 import Animations from './animations';
-import { rgbToGrb } from './utils';
+import { map, rgbToGrb } from './utils';
 import dgram from 'dgram';
 
 const LED_COUNT = 180;
@@ -12,6 +12,12 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
 
     brightness = 16;
     speed = 128;
+
+    fadeDuration = Infinity;
+    fadeStart = 0;
+    private get fadeBrightness() {
+        return map(Date.now(), this.fadeStart, this.fadeStart + this.fadeDuration, 1, 0);
+    }
 
     turnOff() {
         this.stopLoop();
@@ -51,7 +57,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         const frame = new Uint8ClampedArray(_frame);
 
         for (let i = 0; i < FRAME_SIZE; i++)
-            frame[i] = ((frame[i] ?? 0) * this.brightness) / 256;
+            frame[i] = (((frame[i] ?? 0) * this.brightness) / 256) * this.fadeBrightness;
 
         this.sendBuffer(frame);
     }

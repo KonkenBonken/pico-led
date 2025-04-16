@@ -10,8 +10,11 @@ const speed = ref(128);
 watch(speed, speed => fetch('/api/speed/' + speed));
 const color = ref('#ff00aa');
 watch(color, color => fetch('/api/solidColor/' + color.slice(1)));
-const animations = ref<string[]>();
 
+const fadeInput = ref<number>(15);
+const startFade = () => fetch('api/startFade/' + Math.round(fadeInput.value * 60e3));
+
+const animations = ref<string[]>();
 async function updateStatus() {
     const res = await fetch('api/status').then(res => res.json());
     brightness.value = res.brightness;
@@ -34,6 +37,8 @@ const turnOff = () => fetch('api/turnOff');
     <button @click="turnOff">Turn off</button>
     <button @click="renderPeek = !renderPeek">Peek</button>
     <input type="color" v-model="color" />
+    <input type="number" v-model.number="fadeInput" :min="0" />
+    <button @click="startFade">Start fade</button>
 </template>
 
 <style scoped>

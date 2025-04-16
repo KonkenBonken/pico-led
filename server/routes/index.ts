@@ -43,6 +43,15 @@ Bun.serve({
             return Status(200);
         },
 
+        '/api/startFade/:value': req => {
+            const value = parseInt(req.params.value);
+            if (!Number.isInteger(value) || value < 0) return Status(400);
+            if (value === 0) controller.fadeDuration = Infinity;
+            controller.fadeDuration = value;
+            controller.fadeStart = Date.now();
+            return Status(200);
+        },
+
         '/api/startAnimation/:name': req => {
             const name = req.params.name;
             if (!animationExists(name)) return Status(400);

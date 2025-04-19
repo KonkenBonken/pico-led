@@ -46,9 +46,10 @@ Bun.serve({
         '/api/startFade/:value': req => {
             const value = parseInt(req.params.value);
             if (!Number.isInteger(value) || value < 0) return Status(400);
-            if (value === 0) controller.fadeDuration = Infinity;
             controller.fadeDuration = value;
             controller.fadeStart = Date.now();
+            if (value === 0) controller.fadeDuration = Infinity;
+
             return Status(200);
         },
 

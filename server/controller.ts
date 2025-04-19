@@ -31,14 +31,16 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     }
 
     solidColor(color: number) {
-        this.stopLoop();
         const buffer = new Uint8ClampedArray(FRAME_SIZE);
         for (let i = 0; i < buffer.length; i += 3) {
             buffer[i + 0] = (color >> 16) & 255;
             buffer[i + 1] = (color >> 8) & 255;
             buffer[i + 2] = color & 255;
         }
-        this.sendBuffer(buffer);
+        this.frameGenerator = (function* () {
+            while (true) yield buffer;
+        })();
+        this.beginLoop();
     }
 
     private runningLoop?: NodeJS.Timeout;

@@ -1,6 +1,6 @@
 import { EventEmitter } from 'stream';
 import Animations from './animations';
-import { map, rgbToGrb } from './utils';
+import { map, rgbToGrb, scale } from './utils';
 import dgram from 'dgram';
 
 const LED_COUNT = 180;
@@ -59,10 +59,9 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         this.emit('frame', rawFrame);
         const frame = rawFrame.slice();
 
-        for (let i = 0; i < FRAME_SIZE; i++)
-            frame[i] *= (this.brightness / 256) * this.fadeBrightness;
-
+        scale(frame, (this.brightness / 256) * this.fadeBrightness);
         rgbToGrb(frame);
+
         this.sendBuffer(frame);
     }
 

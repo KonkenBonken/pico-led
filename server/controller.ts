@@ -22,6 +22,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     turnOff() {
         this.stopLoop();
         this.sendBuffer();
+        this.emit('frame', new Uint8ClampedArray(FRAME_SIZE));
     }
 
     private frameGenerator?: Generator<Uint8ClampedArray, void, never>;

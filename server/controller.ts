@@ -53,11 +53,11 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     }
 
     iteration() {
-        const _frame = this.frameGenerator?.next().value;
-        if (!_frame) return this.stopLoop();
+        const rawFrame = this.frameGenerator?.next().value;
+        if (!rawFrame) return this.stopLoop();
 
-        this.emit('frame', _frame);
-        const frame = new Uint8ClampedArray(_frame);
+        this.emit('frame', rawFrame);
+        const frame = rawFrame.slice();
 
         for (let i = 0; i < FRAME_SIZE; i++)
             frame[i] = (((frame[i] ?? 0) * this.brightness) / 256) * this.fadeBrightness;

@@ -62,12 +62,13 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         for (let i = 0; i < FRAME_SIZE; i++)
             frame[i] *= (this.brightness / 256) * this.fadeBrightness;
 
+        rgbToGrb(frame);
         this.sendBuffer(frame);
     }
 
     private pingInterval?: NodeJS.Timeout;
     sendBuffer(buffer = new Uint8ClampedArray(FRAME_SIZE)) {
-        this.socket.send(rgbToGrb(buffer), 0, FRAME_SIZE, 12345, '192.168.86.21');
+        this.socket.send(buffer, 0, FRAME_SIZE, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);
     }

@@ -60,7 +60,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         const frame = rawFrame.slice();
 
         for (let i = 0; i < FRAME_SIZE; i++)
-            frame[i] = (((frame[i] ?? 0) * this.brightness) / 256) * this.fadeBrightness;
+            frame[i] *= (this.brightness / 256) * this.fadeBrightness;
 
         this.sendBuffer(frame);
     }

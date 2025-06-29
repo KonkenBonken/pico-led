@@ -20,9 +20,15 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     }
 
     turnOff() {
-        this.stopLoop();
-        this.sendBuffer();
-        this.emit('frame', new Uint8ClampedArray(FRAME_SIZE));
+        this.fadeDuration = 500;
+        this.fadeStart = Date.now();
+
+        setTimeout(() => {
+            this.stopLoop();
+            this.sendBuffer();
+            this.emit('frame', new Uint8ClampedArray(FRAME_SIZE));
+            this.fadeDuration = Infinity;
+        }, 500);
     }
 
     private frameGenerator?: Generator<Uint8ClampedArray, void, never>;

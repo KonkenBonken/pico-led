@@ -56,6 +56,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         const _frame = this.frameGenerator?.next().value;
         if (!_frame) return this.stopLoop();
 
+        this.emit('frame', _frame);
         const frame = new Uint8ClampedArray(_frame);
 
         for (let i = 0; i < FRAME_SIZE; i++)
@@ -67,7 +68,6 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     private pingInterval?: NodeJS.Timeout;
     sendBuffer(buffer = new Uint8ClampedArray(FRAME_SIZE)) {
         this.socket.send(rgbToGrb(buffer), 0, FRAME_SIZE, 12345, '192.168.86.21');
-        this.emit('frame', buffer);
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);
     }

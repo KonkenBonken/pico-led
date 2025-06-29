@@ -30,7 +30,7 @@ const turnOff = () => fetch('api/turnOff');
 
 <template>
     <h1>Led</h1>
-    <Peek v-if="renderPeek" :brightness="brightness" />
+    <Peek v-if="renderPeek" />
     <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
     <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
     <button v-for="name in animations" @click="startAnimation(name)">{{ name }}</button>

@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted, ref } from 'vue';
-
-const props = defineProps<{
-    brightness: number;
-}>();
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const frame = ref(new Uint8Array(540));
 const mounted = ref(true);
 onUnmounted(() => (mounted.value = false));
 
-const leds = ref<string[]>([]);
-watch(frame, frame => {
-    const pxls = [];
-    for (let i = 0; i < 540; i++) frame[i] /= props.brightness / 256;
+const leds = computed(() => {
+    const leds = [];
     for (let i = 0; i < 540; i += 3)
-        pxls.push(
-            frame[i + 1].toString(16).padStart(2, '0') +
-                frame[i].toString(16).padStart(2, '0') +
-                frame[i + 2].toString(16).padStart(2, '0'),
+        leds.push(
+            frame.value[i].toString(16).padStart(2, '0') +
+                frame.value[i + 1].toString(16).padStart(2, '0') +
+                frame.value[i + 2].toString(16).padStart(2, '0'),
         );
-    leds.value = pxls;
+    return leds;
 });
 
 onMounted(async () => {

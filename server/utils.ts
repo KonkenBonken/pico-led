@@ -1,12 +1,3 @@
-export function rgbToGrb(frame: Uint8ClampedArray) {
-    for (let i = 0; i < frame.length; i += 3)
-        [frame[i], frame[i + 1]] = [frame[i + 1], frame[i]];
-}
-
-export function scale(buffer: Uint8ClampedArray, factor: number) {
-    for (let i = 0; i < buffer.length; i++) buffer[i] *= factor;
-}
-
 export function map(
     n: number,
     start1: number,

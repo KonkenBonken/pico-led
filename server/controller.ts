@@ -1,6 +1,6 @@
 import { EventEmitter } from 'stream';
 import Animations from './animations';
-import { map, rgbToGrb, scale } from './utils';
+import { map } from './utils';
 import dgram from 'dgram';
 import SizedFrame, { type Frame } from './Frame';
 
@@ -66,10 +66,10 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
         if (!rawFrame) return this.stopLoop();
 
         this.emit('frame', rawFrame);
-        const frame = rawFrame.slice();
+        const frame = rawFrame.copy();
 
-        scale(frame, (this.brightness / 256) * this.fadeBrightness);
-        rgbToGrb(frame);
+        frame.scale((this.brightness / 256) * this.fadeBrightness);
+        frame.toGrb();
 
         this.sendBuffer(frame);
     }

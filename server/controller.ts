@@ -2,11 +2,13 @@ import { EventEmitter } from 'stream';
 import Animations from './animations';
 import { map, rgbToGrb, scale } from './utils';
 import dgram from 'dgram';
+import SizedFrame, { type Frame } from './Frame';
 
-class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
+class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly LED_COUNT = 180;
     readonly FRAME_SIZE = this.LED_COUNT * 3;
     readonly FRAME_RATE = 30;
+    readonly newFrame = SizedFrame(this);
 
     readonly socket = dgram.createSocket('udp4');
 
@@ -26,19 +28,19 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         setTimeout(() => {
             this.stopLoop();
             this.sendBuffer();
-            this.emit('frame', new Uint8ClampedArray(this.FRAME_SIZE));
+            this.emit('frame', this.newFrame());
             this.fadeDuration = Infinity;
         }, 500);
     }
 
-    private frameGenerator?: Generator<Uint8ClampedArray, void, never>;
+    private frameGenerator?: Generator<Frame, void, never>;
     startAnimation(name: keyof typeof Animations) {
         this.frameGenerator = Animations[name](this);
         this.beginLoop();
     }
 
     solidColor(color: number) {
-        const buffer = new Uint8ClampedArray(this.FRAME_SIZE);
+        const buffer = this.newFrame();
         for (let i = 0; i < buffer.length; i += 3) {
             buffer[i + 0] = (color >> 16) & 255;
             buffer[i + 1] = (color >> 8) & 255;
@@ -73,7 +75,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     }
 
     private pingInterval?: NodeJS.Timeout;
-    sendBuffer(buffer = new Uint8ClampedArray(this.FRAME_SIZE)) {
+    sendBuffer(buffer = this.newFrame()) {
         this.socket.send(buffer, 0, this.FRAME_SIZE, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);

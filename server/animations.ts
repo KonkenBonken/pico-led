@@ -1,9 +1,10 @@
 import noisejs from 'noisejs';
 import type { Controller } from './controller';
+import type { Frame } from './Frame';
 
 const Animations = {
     *Fire(c) {
-        const buffer = new Uint8ClampedArray(c.FRAME_SIZE);
+        const buffer = c.newFrame();
         const noise = new noisejs.Noise();
         let frame = Date.now();
 
@@ -20,7 +21,7 @@ const Animations = {
     },
 
     *ColorSwipe(c) {
-        const buffer = new Uint8ClampedArray(c.FRAME_SIZE);
+        const buffer = c.newFrame();
         let frame = 1;
 
         while (true) {
@@ -35,7 +36,7 @@ const Animations = {
             }
         }
     },
-} satisfies Record<string, (c: Controller) => Generator<Uint8ClampedArray, void, never>>;
+} satisfies Record<string, (c: Controller) => Generator<Frame, void, never>>;
 
 export default Animations;
 

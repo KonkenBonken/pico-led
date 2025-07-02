@@ -3,11 +3,11 @@ import Animations from './animations';
 import { map, rgbToGrb, scale } from './utils';
 import dgram from 'dgram';
 
-const LED_COUNT = 180;
-const FRAME_SIZE = LED_COUNT * 3;
-const FRAME_RATE = 30;
-
 class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
+    readonly LED_COUNT = 180;
+    readonly FRAME_SIZE = this.LED_COUNT * 3;
+    readonly FRAME_RATE = 30;
+
     readonly socket = dgram.createSocket('udp4');
 
     brightness = 16;
@@ -26,7 +26,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
         setTimeout(() => {
             this.stopLoop();
             this.sendBuffer();
-            this.emit('frame', new Uint8ClampedArray(FRAME_SIZE));
+            this.emit('frame', new Uint8ClampedArray(this.FRAME_SIZE));
             this.fadeDuration = Infinity;
         }, 500);
     }
@@ -38,7 +38,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     }
 
     solidColor(color: number) {
-        const buffer = new Uint8ClampedArray(FRAME_SIZE);
+        const buffer = new Uint8ClampedArray(this.FRAME_SIZE);
         for (let i = 0; i < buffer.length; i += 3) {
             buffer[i + 0] = (color >> 16) & 255;
             buffer[i + 1] = (color >> 8) & 255;
@@ -52,7 +52,7 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
 
     private runningLoop?: NodeJS.Timeout;
     beginLoop() {
-        this.runningLoop ??= setInterval(() => this.iteration(), 1000 / FRAME_RATE);
+        this.runningLoop ??= setInterval(() => this.iteration(), 1000 / this.FRAME_RATE);
     }
     stopLoop() {
         clearInterval(this.runningLoop);
@@ -73,8 +73,8 @@ class Controller extends EventEmitter<{ frame: [Uint8ClampedArray] }> {
     }
 
     private pingInterval?: NodeJS.Timeout;
-    sendBuffer(buffer = new Uint8ClampedArray(FRAME_SIZE)) {
-        this.socket.send(buffer, 0, FRAME_SIZE, 12345, '192.168.86.21');
+    sendBuffer(buffer = new Uint8ClampedArray(this.FRAME_SIZE)) {
+        this.socket.send(buffer, 0, this.FRAME_SIZE, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);
     }

@@ -1,11 +1,9 @@
 import noisejs from 'noisejs';
 import type { Controller } from './controller';
 
-const LED_COUNT = 180;
-
 const Animations = {
     *Fire(c) {
-        const buffer = new Uint8ClampedArray(LED_COUNT * 3);
+        const buffer = new Uint8ClampedArray(c.FRAME_SIZE);
         const noise = new noisejs.Noise();
         let frame = Date.now();
 
@@ -22,7 +20,7 @@ const Animations = {
     },
 
     *ColorSwipe(c) {
-        const buffer = new Uint8ClampedArray(LED_COUNT * 3);
+        const buffer = new Uint8ClampedArray(c.FRAME_SIZE);
         let frame = 1;
 
         while (true) {

@@ -6,6 +6,7 @@ import SizedFrame, { type Frame } from './Frame';
 
 class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly LED_COUNT = 180;
+    readonly MAX_CURRENT = 5000; // mA
     readonly FRAME_SIZE = this.LED_COUNT * 3;
     readonly FRAME_RATE = 30;
     readonly newFrame = SizedFrame(this);
@@ -76,6 +77,10 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     private pingInterval?: NodeJS.Timeout;
     sendBuffer(buffer = this.newFrame()) {
+        const totalCurrent = (buffer.reduce((a, b) => a + b) / 255) * 20;
+        if (this.MAX_CURRENT < totalCurrent)
+            buffer.scale(this.MAX_CURRENT / totalCurrent);
+
         this.socket.send(buffer, 0, this.FRAME_SIZE, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);

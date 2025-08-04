@@ -5,15 +5,23 @@ import dgram from 'dgram';
 import SizedFrame, { type Frame } from './Frame';
 
 class Controller extends EventEmitter<{ frame: [Frame] }> {
-    readonly LED_COUNT = 180;
-    readonly FRAME_SIZE = this.LED_COUNT * 3;
-    readonly FRAME_RATE = 30;
+    readonly FRAME_SIZE: number;
+    readonly FRAME_RATE = 2;
     readonly newFrame = SizedFrame(this);
 
     readonly socket = dgram.createSocket('udp4');
 
     brightness = 16;
     speed = 128;
+
+    constructor(
+        readonly LED_COUNT: number,
+        readonly WHITE = false,
+        readonly OFFSET = 0
+    ) {
+        super();
+        this.FRAME_SIZE = LED_COUNT * 3;
+    }
 
     fadeDuration = Infinity;
     fadeStart = 0;
@@ -66,17 +74,28 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
         if (!rawFrame) return this.stopLoop();
 
         this.emit('frame', rawFrame);
-        const frame = rawFrame.copy();
+        let frame = rawFrame.copy();
 
         frame.scale((this.brightness / 256) * this.fadeBrightness);
-        frame.toGrb();
+        if (this.WHITE) frame = frame.toGrbw();
+        else frame.toGrb();
+
+        if (this.OFFSET) frame = frame.offset(this.OFFSET);
 
         this.sendBuffer(frame);
     }
 
     private pingInterval?: NodeJS.Timeout;
     sendBuffer(buffer = this.newFrame()) {
-        this.socket.send(buffer, 0, this.FRAME_SIZE, 12345, '192.168.86.21');
+        this.socket.send(
+            buffer,
+            0,
+            this.OFFSET + this.FRAME_SIZE,
+            12345,
+            '192.168.86.21'
+        );
+        console.log(buffer.join(' '));
+        console.log(buffer.length);
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);
     }
@@ -90,5 +109,5 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 }
 
-export default new Controller();
+export default new Controller(120, true, 180 * 3);
 export type { Controller };

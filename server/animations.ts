@@ -17,7 +17,7 @@ const Animations = {
 
         while (true) {
             for (let i = 0; i < buffer.length; i += 3) {
-                const n = noise.simplex2(i / 100, frame);
+                const n = noise.simplex2(i / 20, frame);
                 const rgb = convert.hsl.rgb(
                     map(n, -1, 1, H - ΔH, H + ΔH),
                     100,
@@ -26,7 +26,7 @@ const Animations = {
                 [buffer[i + 0], buffer[i + 1], buffer[i + 2]] = rgb;
             }
             yield buffer;
-            frame += c.speed / 11e4;
+            frame += c.speed / 60e4;
         }
     },
 

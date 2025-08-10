@@ -1,4 +1,6 @@
 import noisejs from 'noisejs';
+import convert from 'color-convert';
+import { map } from './utils';
 import type { Controller } from './controller';
 import type { Frame } from './Frame';
 
@@ -8,12 +10,20 @@ const Animations = {
         const noise = new noisejs.Noise();
         let frame = Date.now();
 
+        const H = 11;
+        const L = 42;
+        const ΔH = 11;
+        const ΔL = 25;
+
         while (true) {
             for (let i = 0; i < buffer.length; i += 3) {
                 const n = noise.simplex2(i / 100, frame);
-                buffer[i + 0] = n * (254 - 161) + 161;
-                buffer[i + 1] = n * (101 - 1) + 1;
-                buffer[i + 2] = n * 13;
+                const rgb = convert.hsl.rgb(
+                    map(n, -1, 1, H - ΔH, H + ΔH),
+                    100,
+                    map(n, -1, 1, L - ΔL, L + ΔL)
+                );
+                [buffer[i + 0], buffer[i + 1], buffer[i + 2]] = rgb;
             }
             yield buffer;
             frame += c.speed / 11e4;

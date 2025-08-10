@@ -2,6 +2,12 @@ import type { Controller } from './controller';
 
 /** Contains RGB */
 export class Frame extends Uint8ClampedArray {
+    static fromBuffer(buffer: ArrayBuffer) {
+        const frame = new Frame(buffer.byteLength);
+        frame.set(new Uint8ClampedArray(buffer));
+        return frame;
+    }
+
     constructor(size: number) {
         super(size);
     }

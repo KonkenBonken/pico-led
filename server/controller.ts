@@ -6,7 +6,7 @@ import SizedFrame, { type Frame } from './Frame';
 
 class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly FRAME_SIZE: number;
-    readonly FRAME_RATE = 2;
+    readonly FRAME_RATE = 30;
     readonly newFrame = SizedFrame(this);
 
     readonly socket = dgram.createSocket('udp4');
@@ -34,9 +34,9 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
         this.fadeStart = Date.now();
 
         setTimeout(() => {
+            this.solidColor(0);
             this.stopLoop();
-            this.sendBuffer();
-            this.emit('frame', this.newFrame());
+            this.iteration();
             this.fadeDuration = Infinity;
         }, 500);
     }

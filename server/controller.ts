@@ -87,15 +87,7 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     private pingInterval?: NodeJS.Timeout;
     sendBuffer(buffer = this.newFrame()) {
-        this.socket.send(
-            buffer,
-            0,
-            this.OFFSET + this.FRAME_SIZE,
-            12345,
-            '192.168.86.21'
-        );
-        console.log(buffer.join(' '));
-        console.log(buffer.length);
+        this.socket.send(buffer, 0, buffer.length, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);
     }

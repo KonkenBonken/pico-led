@@ -25,15 +25,24 @@ export class Frame extends Uint8ClampedArray {
     }
 
     toGrbw() {
+        // RGBW(150, 66, 6, 0) ≡ RGBW(0, 0, 0, 64)
+        const Rw = 2.34375;
+        const Gw = 1.03125;
+        const Bw = 0.09375;
+
         const clone = new Frame((this.length / 3) * 4);
         let j = 0;
-        for (let i = 0; i < this.length; i += 3, j++)
+        for (let i = 0; i < this.length; i += 3, j++) {
+            let W = Math.min(this[i + 0] / Rw, this[i + 1] / Gw, this[i + 2] / Bw);
+            W = Math.max(0, W);
+
             [clone[i + 0 + j], clone[i + 1 + j], clone[i + 2 + j], clone[i + 3 + j]] = [
-                this[i + 1],
-                this[i + 0],
-                this[i + 2],
-                0,
+                this[i + 1] - W * Gw,
+                this[i + 0] - W * Rw,
+                this[i + 2] - W * Bw,
+                W,
             ];
+        }
         return clone;
     }
 

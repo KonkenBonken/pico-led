@@ -76,7 +76,10 @@ Bun.serve({
         '/api/frameStream': () =>
             new Response(
                 (async function* () {
-                    while (true) yield (await once(controller, 'frame'))[0];
+                    while (true) {
+                        yield (await once(controller, 'frame'))[0];
+                        await Bun.sleep(1000 / 30);
+                    }
                 })()
             ),
     },

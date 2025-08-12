@@ -6,7 +6,7 @@ import SizedFrame, { type Frame } from './Frame';
 
 class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly FRAME_SIZE: number;
-    readonly FRAME_RATE = 30;
+    readonly FRAME_RATE: number;
     readonly newFrame = SizedFrame(this);
 
     readonly socket = dgram.createSocket('udp4');
@@ -21,6 +21,12 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
     ) {
         super();
         this.FRAME_SIZE = LED_COUNT * 3;
+        this.FRAME_RATE = this.maxFrameRate * 0.9;
+    }
+
+    private get maxFrameRate() {
+        if (this.WHITE) return 1 / (1.25e-6 * 32 * this.LED_COUNT + 80e-6);
+        else return 1 / (1.25e-6 * 24 * this.LED_COUNT + 50e-6);
     }
 
     fadeDuration = Infinity;

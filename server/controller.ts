@@ -42,7 +42,8 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
         setTimeout(() => {
             this.solidColor(0);
             this.stopLoop();
-            this.iteration();
+            this.emit('frame', this.newFrame());
+            this.sendBuffer();
             this.fadeDuration = Infinity;
         }, 500);
     }
@@ -54,28 +55,31 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     solidColor(color: number) {
+        this.stopLoop();
         const buffer = this.newFrame();
         for (let i = 0; i < buffer.length; i += 3) {
             buffer[i + 0] = (color >> 16) & 255;
             buffer[i + 1] = (color >> 8) & 255;
             buffer[i + 2] = color & 255;
         }
-        this.frameGenerator = (function* () {
-            while (true) yield buffer;
-        })();
-        this.beginLoop();
+        this.emit('frame', buffer.copy());
+        buffer.toGrbw();
+        this.sendBuffer(buffer);
     }
 
     private runningLoop?: NodeJS.Timeout;
     beginLoop() {
-        this.runningLoop ??= setInterval(() => this.iteration(), 1000 / this.FRAME_RATE);
+        this.runningLoop ??= setInterval(
+            () => this.animationIteration(),
+            1000 / this.FRAME_RATE
+        );
     }
     stopLoop() {
         clearInterval(this.runningLoop);
         delete this.runningLoop;
     }
 
-    iteration() {
+    animationIteration() {
         const rawFrame = this.frameGenerator?.next().value;
         if (!rawFrame) return this.stopLoop();
 
@@ -86,16 +90,15 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
         if (this.WHITE) frame = frame.toGrbw();
         else frame.toGrb();
 
-        if (this.OFFSET) frame = frame.offset(this.OFFSET);
-
         this.sendBuffer(frame);
     }
 
     private pingInterval?: NodeJS.Timeout;
     sendBuffer(buffer = this.newFrame()) {
+        if (this.OFFSET) buffer = buffer.offset(this.OFFSET);
         this.socket.send(buffer, 0, buffer.length, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
-        this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 60e3);
+        this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 10e3);
     }
 
     toJSON() {

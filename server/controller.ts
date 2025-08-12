@@ -16,8 +16,7 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     constructor(
         readonly LED_COUNT: number,
-        readonly WHITE = false,
-        readonly OFFSET = 0
+        readonly WHITE = false
     ) {
         super();
         this.FRAME_SIZE = LED_COUNT * 3;
@@ -95,7 +94,6 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     private pingInterval?: NodeJS.Timeout;
     sendBuffer(buffer = this.newFrame()) {
-        if (this.OFFSET) buffer = buffer.offset(this.OFFSET);
         this.socket.send(buffer, 0, buffer.length, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 10e3);

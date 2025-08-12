@@ -18,12 +18,6 @@ export class Frame extends Uint8ClampedArray {
         return clone;
     }
 
-    offset(offset: number) {
-        const clone = new Frame(this.length + offset);
-        clone.set(this, offset);
-        return clone;
-    }
-
     toGrbw() {
         // RGBW(150, 66, 6, 0) ≡ RGBW(0, 0, 0, 64)
         const Rw = 2.34375;

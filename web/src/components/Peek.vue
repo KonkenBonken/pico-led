@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
-const frame = ref(new Uint8Array(540));
+const frame = ref(new Uint8Array());
 const mounted = ref(true);
 onUnmounted(() => (mounted.value = false));
 
 const leds = computed(() => {
     const leds = [];
-    for (let i = 0; i < 540; i += 3)
+    for (let i = 0; i < frame.value.length; i += 3)
         leds.push(
             frame.value[i].toString(16).padStart(2, '0') +
                 frame.value[i + 1].toString(16).padStart(2, '0') +
@@ -26,7 +26,8 @@ onMounted(async () => {
                 const res = await reader.read().catch(() => null);
                 if (!res) break;
                 const buffer = res.value;
-                frame.value = buffer ?? new Uint8Array(540);
+                if (!buffer) break;
+                frame.value = buffer;
                 if (res.done) break;
             }
             reader.cancel().catch(() => null);

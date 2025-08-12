@@ -4,6 +4,7 @@ import { map } from './utils';
 import type { Controller } from './controller';
 import type { Frame } from './Frame';
 
+// Returns RGB frames
 const Animations = {
     *Fire(c) {
         const buffer = c.newFrame();
@@ -26,7 +27,7 @@ const Animations = {
                 [buffer[i + 0], buffer[i + 1], buffer[i + 2]] = rgb;
             }
             yield buffer;
-            frame += c.speed / 60e4;
+            frame += c.speed / 2e3 / c.FRAME_RATE;
         }
     },
 
@@ -41,7 +42,7 @@ const Animations = {
                 if (--frame < 1)
                     do {
                         yield buffer;
-                        frame += c.speed / 128;
+                        frame += c.speed / 5 / c.FRAME_RATE;
                     } while (frame < 0);
             }
         }

@@ -24,7 +24,7 @@ export class Frame extends Uint8ClampedArray {
         const Gw = 1.03125;
         const Bw = 0.09375;
 
-        const clone = new Frame((this.length / 3) * 4);
+        const clone = new Uint8ClampedArray((this.length / 3) * 4);
         let j = 0;
         for (let i = 0; i < this.length; i += 3, j++) {
             let W = Math.min(this[i + 0] / Rw, this[i + 1] / Gw, this[i + 2] / Bw);
@@ -41,8 +41,14 @@ export class Frame extends Uint8ClampedArray {
     }
 
     toGrb() {
-        for (let i = 0; i < this.length; i += 3)
-            [this[i], this[i + 1]] = [this[i + 1], this[i]];
+        const clone = new Uint8ClampedArray(this.length);
+        for (let i = 0; i < clone.length; i += 3)
+            [clone[i], clone[i + 1], clone[i + 2]] = [
+                clone[i + 1],
+                clone[i],
+                clone[i + 2],
+            ];
+        return clone;
     }
 
     scale(factor: number) {

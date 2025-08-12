@@ -14,10 +14,7 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
     brightness = 16;
     speed = 128;
 
-    constructor(
-        readonly LED_COUNT: number,
-        readonly WHITE = false
-    ) {
+    constructor(readonly LED_COUNT: number, readonly WHITE = false) {
         super();
         this.FRAME_SIZE = LED_COUNT * 3;
         this.FRAME_RATE = this.maxFrameRate * 0.9;
@@ -62,8 +59,7 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
             buffer[i + 2] = color & 255;
         }
         this.emit('frame', buffer.copy());
-        buffer.toGrbw();
-        this.sendBuffer(buffer);
+        this.sendBuffer(buffer.toGrbw());
     }
 
     private runningLoop?: NodeJS.Timeout;
@@ -86,14 +82,15 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
         let frame = rawFrame.copy();
 
         frame.scale((this.brightness / 256) * this.fadeBrightness);
-        if (this.WHITE) frame = frame.toGrbw();
-        else frame.toGrb();
 
-        this.sendBuffer(frame);
+        const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
+        this.sendBuffer(buffer);
     }
 
     private pingInterval?: NodeJS.Timeout;
-    sendBuffer(buffer = this.newFrame()) {
+    sendBuffer(buffer?: Uint8ClampedArray) {
+        if (!buffer)
+            buffer = new Uint8ClampedArray(this.LED_COUNT * (this.WHITE ? 4 : 3));
         this.socket.send(buffer, 0, buffer.length, 12345, '192.168.86.21');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 10e3);
@@ -108,5 +105,5 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 }
 
-export default new Controller(120, true, 180 * 3);
+export default new Controller(120, true);
 export type { Controller };

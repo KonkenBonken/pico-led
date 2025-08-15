@@ -52,14 +52,27 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     solidColor(color: number) {
         this.stopLoop();
+        const hasW = !!((color >> 24) & 255);
+        if (this.WHITE && hasW) {
+            const buffer = new Uint8ClampedArray(this.LED_COUNT * 4);
+            for (let i = 0; i < buffer.length; i += 4) {
+                buffer[i + 0] = (color >> 16) & 255;
+                buffer[i + 1] = (color >> 8) & 255;
+                buffer[i + 2] = color & 255;
+                buffer[i + 3] = (color >> 24) & 255;
+            }
+            this.sendBuffer(buffer);
+        }
+
         const buffer = this.newFrame();
         for (let i = 0; i < buffer.length; i += 3) {
             buffer[i + 0] = (color >> 16) & 255;
             buffer[i + 1] = (color >> 8) & 255;
             buffer[i + 2] = color & 255;
         }
+        if (this.WHITE && !hasW) this.sendBuffer(buffer.toGrbw());
+        if (!this.WHITE) this.sendBuffer(buffer.toGrb());
         this.emit('frame', buffer.copy());
-        this.sendBuffer(buffer.toGrbw());
     }
 
     private runningLoop?: NodeJS.Timeout;

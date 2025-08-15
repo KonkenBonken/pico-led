@@ -38,7 +38,7 @@ Bun.serve({
 
         '/api/solidColor/:value': req => {
             const value = parseInt(req.params.value, 16);
-            if (!Number.isInteger(value) || value < 0 || value >= 2 ** 24)
+            if (!Number.isInteger(value) || value < 0 || value >= 2 ** 32)
                 return Status(400);
             controller.solidColor(value);
             return Status(200);

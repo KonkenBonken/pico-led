@@ -4,6 +4,7 @@ import Peek from './components/Peek.vue';
 
 const renderPeek = ref(false);
 
+const supportsRGBW = ref(false);
 const brightness = ref(16);
 watch(brightness, brightness => fetch('/api/brightness/' + brightness));
 const speed = ref(128);
@@ -20,6 +21,7 @@ async function updateStatus() {
     brightness.value = res.brightness;
     speed.value = res.speed;
     animations.value = res.animations;
+    supportsRGBW.value = res.supportsRGBW;
 }
 updateStatus();
 setInterval(updateStatus, 60e3);
@@ -37,7 +39,7 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
     <button v-for="name in animations" @click="startAnimation(name)" :key="name">
         {{ name }}
     </button>
-    <button @click="warmWhite">Warm White</button>
+    <button v-if="supportsRGBW" @click="warmWhite">Warm White</button>
     <button @click="turnOff">Turn off</button>
     <button @click="renderPeek = !renderPeek">Peek</button>
     <input type="color" v-model="color" />

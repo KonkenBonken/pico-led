@@ -114,9 +114,10 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
             brightness: this.brightness,
             speed: this.speed,
             animations: Object.keys(Animations),
+            supportsRGBW: this.WHITE,
         };
     }
 }
 
-export default new Controller(120, true);
+export default new Controller(180, false);
 export type { Controller };

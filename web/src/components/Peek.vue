@@ -39,7 +39,7 @@ onMounted(async () => {
 
 <template>
     <section>
-        <div v-for="led of leds" :style="{ backgroundColor: '#' + led }" />
+        <div v-for="(led, i) of leds" :style="{ backgroundColor: '#' + led }" :key="i" />
     </section>
 </template>
 

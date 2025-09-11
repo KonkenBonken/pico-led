@@ -8,7 +8,7 @@ from neopixel import NeoPixel
 WIFI_SSID = "…"
 WIFI_PASS = "…"
 UDP_PORT = 12345
-LED_PIN = 16
+LED_PIN = 28
 NUM_LEDS = 180
 
 wlan = network.WLAN(network.STA_IF)

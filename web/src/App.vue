@@ -66,7 +66,7 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
 </template>
 
 <style lang="scss">
-@import './colors.scss';
+@use './colors.scss' as *;
 
 :root,
 body,

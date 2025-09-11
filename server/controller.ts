@@ -46,7 +46,7 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     frameGenerator?: Generator<Frame, void, never>;
     startAnimation(name: keyof typeof Animations) {
-        this.frameGenerator = Animations[name](this);
+        this.frameGenerator = Animations[name].frames(this);
         this.beginLoop();
     }
 

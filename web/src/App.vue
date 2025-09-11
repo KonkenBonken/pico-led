@@ -34,7 +34,9 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
     <Peek v-if="renderPeek" />
     <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
     <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
-    <button v-for="name in animations" @click="startAnimation(name)">{{ name }}</button>
+    <button v-for="name in animations" @click="startAnimation(name)" :key="name">
+        {{ name }}
+    </button>
     <button @click="warmWhite">Warm White</button>
     <button @click="turnOff">Turn off</button>
     <button @click="renderPeek = !renderPeek">Peek</button>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 const color = defineModel<string>();
+const pickerPos = ref<[number, number]>([0, 0]);
 
 // Based on https://stackoverflow.com/a/69963510/12356941
 const colors = [
@@ -13,9 +16,11 @@ const colors = [
 ];
 
 function onMouseMove(e: MouseEvent | PointerEvent) {
-    if (!(e.buttons & 1 || e.type === 'click')) return;
+    if (!(e.buttons & 1)) return;
     const el = e.currentTarget as HTMLDivElement;
     const rect = el.getBoundingClientRect();
+
+    pickerPos.value = [e.clientX - rect.left, e.clientY - rect.top];
 
     const x = (2 * (e.clientX - rect.left)) / (rect.right - rect.left) - 1;
     const y = 1 - (2 * (e.clientY - rect.top)) / (rect.bottom - rect.top);
@@ -55,10 +60,18 @@ function onMouseMove(e: MouseEvent | PointerEvent) {
 </script>
 
 <template>
-    <div id="wheel" @mousemove="onMouseMove" @click="onMouseMove" />
+    <div id="wheel" @mousemove="onMouseMove" @mousedown="onMouseMove">
+        <div
+            :style="{
+                left: pickerPos[0] + 'px',
+                top: pickerPos[1] + 'px',
+                backgroundColor: color,
+            }"
+        />
+    </div>
 </template>
 
-<style scoped>
+<style lang="scss">
 #wheel {
     width: 200px;
     height: 200px;
@@ -67,5 +80,22 @@ function onMouseMove(e: MouseEvent | PointerEvent) {
         radial-gradient(white, transparent 80%),
         conic-gradient(#e43f00, #fae410, #55cc3b, #09adff, #6b0efd, #e70d86, #e43f00);
     cursor: pointer;
+
+    > div {
+        position: relative;
+        width: 24px;
+        height: 24px;
+        border: 2px solid white;
+        border-radius: 50%;
+        translate: -50% -50%;
+        transition: opacity 0.5s 1s ease-out;
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    &:active > div {
+        opacity: 1;
+        transition: none;
+    }
 }
 </style>

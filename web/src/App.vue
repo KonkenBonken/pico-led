@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import Peek from './components/Peek.vue';
+import ColorPicker from './components/ColorPicker.vue';
 
 const renderPeek = ref(false);
 
@@ -36,6 +37,7 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
     <Peek v-if="renderPeek" />
     <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
     <input type="range" :min="0" :max="255" :step="1" v-model="speed" />
+    <ColorPicker />
     <button v-for="name in animations" @click="startAnimation(name)" :key="name">
         {{ name }}
     </button>

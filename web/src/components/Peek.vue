@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
@@ -38,19 +39,16 @@ onMounted(async () => {
 </script>
 
 <template>
-    <section>
+    <section id="peek">
         <div v-for="(led, i) of leds" :style="{ backgroundColor: '#' + led }" :key="i" />
     </section>
 </template>
 
-<style scoped>
-section {
-    position: fixed;
+<style lang="scss">
+#peek {
     display: flex;
-    top: 0;
-    right: 0;
-    left: 0;
-    height: 0.5em;
+    width: 100%;
+    height: 100%;
 
     > div {
         height: inherit;

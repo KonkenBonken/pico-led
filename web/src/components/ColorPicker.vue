@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-
-const color = ref('#ff0000');
+const color = defineModel<string>();
 
 // Based on https://stackoverflow.com/a/69963510/12356941
 const colors = [
@@ -14,8 +12,8 @@ const colors = [
     { r: 0xe4, g: 0x3f, b: 0x00 },
 ];
 
-function onMouseMove(e: MouseEvent) {
-    if (!(e.buttons & 1)) return;
+function onMouseMove(e: MouseEvent | PointerEvent) {
+    if (!(e.buttons & 1 || e.type === 'click')) return;
     const el = e.currentTarget as HTMLDivElement;
     const rect = el.getBoundingClientRect();
 
@@ -40,8 +38,8 @@ function onMouseMove(e: MouseEvent) {
 
     let r = Math.sqrt(x * x + y * y);
     if (r > 1) r = 1;
-    var cw = r < 0.8 ? r / 0.8 : 1;
-    var ww = 1 - cw;
+    const cw = r < 0.8 ? r / 0.8 : 1;
+    const ww = 1 - cw;
     clrR = Math.round(clrR * cw + 255 * ww);
     clrG = Math.round(clrG * cw + 255 * ww);
     clrB = Math.round(clrB * cw + 255 * ww);

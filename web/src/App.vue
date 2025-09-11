@@ -56,12 +56,11 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
         </div>
         <FontAwesomeIcon @click="turnOff" :icon="faPowerOff" />
     </header>
-    <ColorPicker />
+    <ColorPicker v-model="color" />
     <button v-for="name in animations" @click="startAnimation(name)" :key="name">
         {{ name }}
     </button>
     <button v-if="supportsRGBW" @click="warmWhite">Warm White</button>
-    <input type="color" v-model="color" />
     <input type="number" v-model.number="fadeInput" :min="0" />
     <button @click="startFade">Start fade</button>
 </template>

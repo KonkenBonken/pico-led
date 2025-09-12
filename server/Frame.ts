@@ -47,6 +47,17 @@ export class Frame extends Uint8ClampedArray {
         return clone;
     }
 
+    toJSON() {
+        const leds = [];
+        for (let i = 0; i < this.length; i += 3)
+            leds.push(
+                this[i].toString(16).padStart(2, '0') +
+                    this[i + 1].toString(16).padStart(2, '0') +
+                    this[i + 2].toString(16).padStart(2, '0')
+            );
+        return leds;
+    }
+
     scale(factor: number) {
         for (let i = 0; i < this.length; i++) this[i] *= factor;
     }

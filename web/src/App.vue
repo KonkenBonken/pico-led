@@ -9,6 +9,7 @@ import { faPersonRunning } from '@fortawesome/free-solid-svg-icons/faPersonRunni
 import { faPowerOff } from '@fortawesome/free-solid-svg-icons/faPowerOff';
 import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
 import { faEyeSlash } from '@fortawesome/free-solid-svg-icons/faEyeSlash';
+import AnimationButton from './components/AnimationButton.vue';
 
 const renderPeek = ref(false);
 
@@ -23,7 +24,7 @@ watch(color, color => fetch('/api/solidColor/' + color.slice(1)));
 const fadeInput = ref<number>(15);
 const startFade = () => fetch('api/startFade/' + Math.round(fadeInput.value * 60e3));
 
-const animations = ref<string[]>();
+const animations = ref<{ name: string; preview: string[] }[]>();
 async function updateStatus() {
     const res = await fetch('api/status').then(res => res.json());
     brightness.value = res.brightness;
@@ -34,7 +35,6 @@ async function updateStatus() {
 updateStatus();
 setInterval(updateStatus, 60e3);
 
-const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
 const turnOff = () => fetch('api/turnOff');
 const warmWhite = () => fetch('/api/solidColor/ff000000');
 </script>
@@ -57,9 +57,11 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
         <FontAwesomeIcon @click="turnOff" :icon="faPowerOff" />
     </header>
     <ColorPicker v-model="color" />
-    <button v-for="name in animations" @click="startAnimation(name)" :key="name">
-        {{ name }}
-    </button>
+    <AnimationButton
+        v-for="animation in animations"
+        :animation="animation"
+        :key="animation.name"
+    />
     <button v-if="supportsRGBW" @click="warmWhite">Warm White</button>
     <input type="number" v-model.number="fadeInput" :min="0" />
     <button @click="startFade">Start fade</button>
@@ -67,6 +69,7 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
 
 <style lang="scss">
 @use './colors.scss' as *;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wdth,wght@0,62.5..100,100..900;1,62.5..100,100..900&display=swap');
 
 :root,
 body,
@@ -83,6 +86,9 @@ body,
     display: flex;
     flex-direction: column;
     align-items: center;
+    color: $clr-primary-a60;
+    font-family: 'Noto Sans', sans-serif;
+    font-optical-sizing: auto;
 }
 
 header {
@@ -125,7 +131,7 @@ header {
 }
 
 svg {
-    color: $clr-primary-a50;
+    color: $clr-primary-a40;
 }
 
 input[type='range'] {

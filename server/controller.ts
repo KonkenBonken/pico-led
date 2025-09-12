@@ -1,10 +1,10 @@
 import { EventEmitter } from 'stream';
-import Animations from './animations';
+import Animations, { getAnimationJSON } from './animations';
 import { map } from './utils';
 import dgram from 'dgram';
 import SizedFrame, { type Frame } from './Frame';
 
-class Controller extends EventEmitter<{ frame: [Frame] }> {
+export class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly FRAME_SIZE: number;
     readonly FRAME_RATE: number;
     readonly newFrame = SizedFrame(this);
@@ -113,11 +113,10 @@ class Controller extends EventEmitter<{ frame: [Frame] }> {
         return {
             brightness: this.brightness,
             speed: this.speed,
-            animations: Object.keys(Animations),
+            animations: getAnimationJSON(),
             supportsRGBW: this.WHITE,
         };
     }
 }
 
 export default new Controller(180, false);
-export type { Controller };

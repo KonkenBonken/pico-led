@@ -1,7 +1,7 @@
 import noisejs from 'noisejs';
 import convert from 'color-convert';
 import { map } from './utils';
-import type { Controller } from './controller';
+import { Controller } from './controller';
 import type { Frame } from './Frame';
 
 // Returns RGB frames
@@ -34,6 +34,7 @@ const Animations = {
     },
 
     ColorSwipe: {
+        previewFrame: 18e4,
         *frames(c) {
             const buffer = c.newFrame();
             let frame = 1;
@@ -51,10 +52,32 @@ const Animations = {
             }
         },
     },
-} satisfies Record<string, { frames(c: Controller): Generator<Frame, void, never> }>;
+} satisfies Record<
+    string,
+    { previewFrame?: number; frames(c: Controller): Generator<Frame, void, never> }
+>;
 
 export default Animations;
 
 export function animationExists(name: string): name is keyof typeof Animations {
     return Object.hasOwn(Animations, name);
+}
+
+export function getFramePreview(
+    animation: (typeof Animations)[keyof typeof Animations]
+) {
+    const c = new Controller(30);
+    if ('previewFrame' in animation) c.speed = animation.previewFrame;
+    else c.speed = 0;
+
+    const generator = animation.frames(c);
+    generator.next();
+    return generator.next().value;
+}
+
+export function getAnimationJSON() {
+    return Object.entries(Animations).map(([name, animation]) => ({
+        name,
+        preview: getFramePreview(animation),
+    }));
 }

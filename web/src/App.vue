@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import Peek from './components/Peek.vue';
 import ColorPicker from './components/ColorPicker.vue';
 
@@ -13,8 +13,19 @@ import AnimationButton from './components/AnimationButton.vue';
 
 const renderPeek = ref(false);
 
+const sliderBrightness = ref(158);
+const brightness = computed({
+    get() {
+        const t = sliderBrightness.value / 1000;
+        return Math.round(255 * t ** 1.5);
+    },
+    set(val) {
+        const t = val / 255;
+        sliderBrightness.value = 1000 * t ** (1 / 1.5);
+    },
+});
+
 const supportsRGBW = ref(false);
-const brightness = ref(16);
 watch(brightness, brightness => fetch('/api/brightness/' + brightness));
 const speed = ref(128);
 watch(speed, speed => fetch('/api/speed/' + speed));
@@ -48,7 +59,7 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
         />
         <div>
             <FontAwesomeIcon :icon="faSun" />
-            <input type="range" :min="0" :max="255" :step="1" v-model="brightness" />
+            <input type="range" :max="1000" v-model="sliderBrightness" />
         </div>
         <div>
             <FontAwesomeIcon :icon="faPersonRunning" />

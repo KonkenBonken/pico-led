@@ -54,6 +54,18 @@ Bun.serve({
             return Status(200);
         },
 
+        '/api/wake/:value': req => {
+            const value = parseInt(req.params.value);
+            const date = new Date(value);
+            const duration = 30 * 60e3;
+            if (isNaN(+date)) return Status(400);
+            controller.fadeDuration = -duration;
+            controller.fadeStart = +date;
+            if (value === 0) controller.fadeDuration = Infinity;
+
+            return Status(200);
+        },
+
         '/api/startAnimation/:name': req => {
             const name = req.params.name;
             if (!animationExists(name)) return Status(400);

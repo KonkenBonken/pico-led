@@ -27,8 +27,34 @@ print("Listening on UDP port", UDP_PORT)
 
 np = NeoPixel(Pin(LED_PIN), NUM_LEDS)
 
+framegen = None
+
 while True:
-    # Awaits UPD message
-    data = s.recv(NUM_LEDS * 3)
-    np.buf = bytearray(data)
-    np.write()
+    try:
+        raw = s.recv(1500)
+        flag, data = raw[0], raw[1:]
+
+        if flag == 0:
+            np.buf = bytearray(data)
+            np.write()
+            framegen = None
+            s.settimeout(None)
+
+        elif flag == 1:
+            ns = dict()
+            try:
+                exec(data, ns)
+            except Exception:
+                continue
+            framegen = ns["f"]()
+            s.settimeout(0.01)
+
+    except TimeoutError:
+        if framegen:
+            try:
+                np.buf = bytearray(next(framegen))
+                np.write()
+            except (Exception, StopIteration):
+                framegen = None
+                s.settimeout(None)
+                continue

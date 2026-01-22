@@ -104,7 +104,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     sendBuffer(buffer?: Uint8ClampedArray) {
         if (!buffer)
             buffer = new Uint8ClampedArray(this.LED_COUNT * (this.WHITE ? 4 : 3));
-        this.socket.send(buffer, 0, buffer.length, 12345, '192.168.0.16');
+        this.socket.send(new Uint8ClampedArray([0, ...buffer]), 0, buffer.length + 1, 12345, '192.168.0.16');
         clearTimeout(this.pingInterval);
         this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 10e3);
     }

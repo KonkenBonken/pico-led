@@ -33,6 +33,37 @@ const Animations = {
         },
     },
 
+    Mello: {
+        previewSize: 100,
+        * frames(c) {
+            const buffer = c.newFrame();
+
+            const segmentSize = 10;
+            const colors = [
+                0x0693C6,
+                0x7912B5,
+                0xF6047D,
+                0xE08700
+            ];
+            let colorIndex = 0;
+
+            while (true) {
+                for (let i = 0; i < buffer.length; i += 3 * segmentSize) {
+                    colorIndex += Math.floor(Math.random() * (colors.length - 1)) + 1;
+                    colorIndex %= colors.length;
+                    const color = colors[colorIndex];
+
+
+                    for (let j = 0; j < segmentSize; j++)
+                        for (let k = 0; k < 3; k++)
+                            buffer[i + j * 3 + k] = (color >> (k * 8)) & 255;
+                }
+                for (let f = 0; f < c.FRAME_RATE * 100 / c.speed; f++)
+                    yield buffer;
+            }
+        }
+    },
+
     ColorSwipe: {
         previewSize: 8,
         previewFrame: 17e4,

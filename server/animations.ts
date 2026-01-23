@@ -34,7 +34,8 @@ const Animations = {
     },
 
     ColorSwipe: {
-        previewFrame: 18e4,
+        previewSize: 8,
+        previewFrame: 17e4,
         *frames(c) {
             const buffer = c.newFrame();
             let frame = 1;
@@ -54,7 +55,7 @@ const Animations = {
     },
 } satisfies Record<
     string,
-    { previewFrame?: number; frames(c: Controller): Generator<Frame, void, never> }
+    { previewFrame?: number; previewSize?: number; frames(c: Controller): Generator<Frame, void, never> }
 >;
 
 export default Animations;
@@ -66,7 +67,7 @@ export function animationExists(name: string): name is keyof typeof Animations {
 export function getFramePreview(
     animation: (typeof Animations)[keyof typeof Animations]
 ) {
-    const c = new Controller(30);
+    const c = new Controller(('previewSize' in animation) ? animation.previewSize : 45);
     if ('previewFrame' in animation) c.speed = animation.previewFrame;
     else c.speed = 0;
 

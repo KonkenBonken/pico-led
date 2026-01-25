@@ -3,6 +3,7 @@ import convert from 'color-convert';
 import { map } from './utils';
 import { Controller } from './controller';
 import type { Frame } from './Frame';
+import { MicroFunction } from './MicroFunction.ts';
 
 // Returns RGB frames
 const Animations = {
@@ -35,6 +36,21 @@ const Animations = {
 
     ColorSwipe: {
         previewFrame: 18e4,
+        microFunction(c) {
+            return new MicroFunction(`
+            from random import getrandbits
+            
+            def f():
+                buf = bytearray(${c.FRAME_SIZE})
+                frame = 1
+                
+                while True:
+                    color = getrandbits(24).to_bytes(3) 
+                    for i in range(0, ${c.FRAME_SIZE}, 3):
+                        buf[i:i+3] = color
+                        yield buf
+        `);
+        },
         *frames(c) {
             const buffer = c.newFrame();
             let frame = 1;
@@ -50,11 +66,15 @@ const Animations = {
                         } while (frame < 0);
                 }
             }
-        },
-    },
+        }
+    }
 } satisfies Record<
     string,
-    { previewFrame?: number; frames(c: Controller): Generator<Frame, void, never> }
+    {
+        previewFrame?: number;
+        frames(c: Controller): Generator<Frame, void, never>;
+        microFunction?(c: Controller): MicroFunction
+    }
 >;
 
 export default Animations;

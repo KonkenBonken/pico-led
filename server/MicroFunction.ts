@@ -3,6 +3,8 @@ export class MicroFunction {
     readonly code: string;
 
     constructor(code: string) {
+        const minIndentation = Math.min(...code.split('\n').map(line => line.search(/\S/)).filter(i => i >= 0));
+        code = code.replace(new RegExp(`(?<=\\n)[\\t ]{${minIndentation}}`, 'g'), '');
         this.code = code;
     }
 

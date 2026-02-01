@@ -18,6 +18,18 @@ export class Frame extends Uint8ClampedArray {
         return clone;
     }
 
+    fillColor(color: number[] | number) {
+        if (!Array.isArray(color))
+            this.fillColor([
+                (color >> 16) & 255,
+                (color >> 8) & 255,
+                (color >> 0) & 255
+            ]);
+        else
+            for (let i = 0; i < this.length; i++)
+                this[i] = color[i % color.length];
+    }
+
     toGrbw() {
         // RGBW(150, 66, 6, 0) ≡ RGBW(0, 0, 0, 64)
         const Rw = 2.34375;

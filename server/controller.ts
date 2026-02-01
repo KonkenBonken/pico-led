@@ -1,9 +1,19 @@
 import { EventEmitter } from 'events';
-import { ref, watch } from '@vue/reactivity';
+import { ref, shallowRef, watch } from '@vue/reactivity';
 import Animations, { getAnimationJSON } from './animations';
 import { map } from './utils';
 import dgram from 'dgram';
 import SizedFrame, { type Frame } from './Frame';
+
+type State = {
+    type: 'off'
+} | {
+    type: 'animation'
+    frameGenerator: Generator<Frame, void, never>
+} | {
+    type: 'solidcolor'
+    color: number
+};
 
 export class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly FRAME_SIZE: number;
@@ -11,6 +21,8 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly newFrame = SizedFrame(this);
 
     readonly socket = dgram.createSocket('udp4');
+
+    private readonly currentState = shallowRef<Readonly<State>>({ type: 'off' });
 
     readonly brightness = ref(16);
     speed = 128;
@@ -22,6 +34,39 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
         watch(this.runningLoop, (_, prev?: NodeJS.Timeout) => clearInterval(prev));
         watch(this.pingInterval, (_, prev?: NodeJS.Timeout) => clearTimeout(prev));
+
+        watch(this.currentState, (state: State) => {
+            if (state.type === 'off') {
+                this.solidColor(0);
+                this.fadeDuration = Infinity;
+            } else if (state.type === 'animation') {
+                this.beginLoop();
+            } else if (state.type === 'solidcolor') {
+                this.stopLoop();
+                const { color } = state;
+                const hasW = !!((color >> 24) & 255);
+                if (this.WHITE && hasW) {
+                    const buffer = new Uint8ClampedArray(this.LED_COUNT * 4);
+                    for (let i = 0; i < buffer.length; i += 4) {
+                        buffer[i + 0] = (color >> 16) & 255;
+                        buffer[i + 1] = (color >> 8) & 255;
+                        buffer[i + 2] = color & 255;
+                        buffer[i + 3] = (color >> 24) & 255;
+                    }
+                    this.sendBuffer(buffer);
+                }
+
+                const buffer = this.newFrame();
+                for (let i = 0; i < buffer.length; i += 3) {
+                    buffer[i + 0] = (color >> 16) & 255;
+                    buffer[i + 1] = (color >> 8) & 255;
+                    buffer[i + 2] = color & 255;
+                }
+                if (this.WHITE && !hasW) this.sendBuffer(buffer.toGrbw());
+                if (!this.WHITE) this.sendBuffer(buffer.toGrb());
+                this.emit('frame', buffer.copy());
+            }
+        });
     }
 
     private get maxFrameRate() {
@@ -41,41 +86,23 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         this.fadeStart = Date.now();
 
         setTimeout(() => {
-            this.solidColor(0);
-            this.fadeDuration = Infinity;
+            this.currentState.value = { type: 'off' };
         }, 500);
     }
 
-    readonly frameGenerator = ref<Generator<Frame, void, never> | null>(null);
 
     startAnimation(name: keyof typeof Animations) {
-        this.frameGenerator.value = Animations[name].frames(this);
-        this.beginLoop();
+        this.currentState.value = {
+            type: 'animation',
+            frameGenerator: Animations[name].frames(this)
+        };
     }
 
     solidColor(color: number) {
-        this.stopLoop();
-        const hasW = !!((color >> 24) & 255);
-        if (this.WHITE && hasW) {
-            const buffer = new Uint8ClampedArray(this.LED_COUNT * 4);
-            for (let i = 0; i < buffer.length; i += 4) {
-                buffer[i + 0] = (color >> 16) & 255;
-                buffer[i + 1] = (color >> 8) & 255;
-                buffer[i + 2] = color & 255;
-                buffer[i + 3] = (color >> 24) & 255;
-            }
-            this.sendBuffer(buffer);
-        }
-
-        const buffer = this.newFrame();
-        for (let i = 0; i < buffer.length; i += 3) {
-            buffer[i + 0] = (color >> 16) & 255;
-            buffer[i + 1] = (color >> 8) & 255;
-            buffer[i + 2] = color & 255;
-        }
-        if (this.WHITE && !hasW) this.sendBuffer(buffer.toGrbw());
-        if (!this.WHITE) this.sendBuffer(buffer.toGrb());
-        this.emit('frame', buffer.copy());
+        this.currentState.value = {
+            type: 'solidcolor',
+            color
+        };
     }
 
     private readonly runningLoop = ref<NodeJS.Timeout | null>(null);
@@ -92,7 +119,9 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     animationIteration() {
-        const rawFrame = this.frameGenerator.value?.next().value;
+        if (this.currentState.value.type !== 'animation') return;
+
+        const rawFrame = this.currentState.value.frameGenerator.next().value;
         if (!rawFrame) return this.stopLoop();
 
         this.emit('frame', rawFrame);

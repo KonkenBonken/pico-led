@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { ref } from '@vue/reactivity';
 import Animations, { getAnimationJSON } from './animations';
 import { map } from './utils';
 import dgram from 'dgram';
@@ -11,7 +12,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     readonly socket = dgram.createSocket('udp4');
 
-    brightness = 16;
+    readonly brightness = ref(16);
     speed = 128;
 
     constructor(readonly LED_COUNT: number, readonly WHITE = false) {
@@ -27,6 +28,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     fadeDuration = Infinity;
     fadeStart = 0;
+
     private get fadeBrightness() {
         return map(Date.now(), this.fadeStart, this.fadeStart + this.fadeDuration, 1, 0);
     }
@@ -41,9 +43,10 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         }, 500);
     }
 
-    frameGenerator?: Generator<Frame, void, never>;
+    readonly frameGenerator = ref<Generator<Frame, void, never> | null>(null);
+
     startAnimation(name: keyof typeof Animations) {
-        this.frameGenerator = Animations[name].frames(this);
+        this.frameGenerator.value = Animations[name].frames(this);
         this.beginLoop();
     }
 
@@ -72,46 +75,52 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         this.emit('frame', buffer.copy());
     }
 
-    private runningLoop?: NodeJS.Timeout;
+    private readonly runningLoop = ref<NodeJS.Timeout | null>(null);
+
     beginLoop() {
-        this.runningLoop ??= setInterval(
+        this.runningLoop.value ??= setInterval(
             () => this.animationIteration(),
             1000 / this.FRAME_RATE
         );
     }
+
     stopLoop() {
-        clearInterval(this.runningLoop);
-        delete this.runningLoop;
+        if (this.runningLoop.value)
+            clearInterval(this.runningLoop.value);
+        else
+            this.runningLoop.value = null;
     }
 
     animationIteration() {
-        const rawFrame = this.frameGenerator?.next().value;
+        const rawFrame = this.frameGenerator.value?.next().value;
         if (!rawFrame) return this.stopLoop();
 
         this.emit('frame', rawFrame);
         let frame = rawFrame.copy();
 
-        frame.scale((this.brightness / 256) * this.fadeBrightness);
+        frame.scale((this.brightness.value / 256) * this.fadeBrightness);
 
         const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
         this.sendBuffer(buffer);
     }
 
-    private pingInterval?: NodeJS.Timeout;
+    private readonly pingInterval = ref<NodeJS.Timeout | null>(null);
+
     sendBuffer(buffer?: Uint8ClampedArray) {
         if (!buffer)
             buffer = new Uint8ClampedArray(this.LED_COUNT * (this.WHITE ? 4 : 3));
         this.socket.send(buffer, 0, buffer.length, 12345, '192.168.0.16');
-        clearTimeout(this.pingInterval);
-        this.pingInterval = setTimeout(() => this.sendBuffer(buffer), 10e3);
+        if (this.pingInterval.value)
+            clearTimeout(this.pingInterval.value);
+        this.pingInterval.value = setTimeout(() => this.sendBuffer(buffer), 10e3);
     }
 
     toJSON() {
         return {
-            brightness: this.brightness,
+            brightness: this.brightness.value,
             speed: this.speed,
             animations: getAnimationJSON(),
-            supportsRGBW: this.WHITE,
+            supportsRGBW: this.WHITE
         };
     }
 }

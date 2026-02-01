@@ -24,7 +24,7 @@ Bun.serve({
             const value = +req.params.value;
             if (!Number.isInteger(value) || value < 0 || value >= 256)
                 return Status(400);
-            controller.brightness = value;
+            controller.brightness.value = value;
             return Status(200);
         },
 
@@ -78,7 +78,7 @@ Bun.serve({
                 const buffer = Frame.fromBuffer(await req.arrayBuffer());
                 console.log(buffer);
                 if (buffer.length !== controller.FRAME_SIZE) return Status(400);
-                controller.frameGenerator = (function* () {
+                controller.frameGenerator.value = (function* () {
                     while (true) yield buffer;
                 })();
                 controller.beginLoop();

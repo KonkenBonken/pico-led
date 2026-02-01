@@ -1,6 +1,5 @@
 import { animationExists } from '../animations';
 import controller from '../controller';
-import { Frame } from '../Frame';
 import { once } from 'events';
 
 const Status = (status: number) => new Response(null, { status });
@@ -71,18 +70,6 @@ Bun.serve({
             if (!animationExists(name)) return Status(400);
             controller.startAnimation(name);
             return Status(200);
-        },
-
-        '/api/framebuffer': {
-            POST: async req => {
-                const buffer = Frame.fromBuffer(await req.arrayBuffer());
-                console.log(buffer);
-                if (buffer.length !== controller.FRAME_SIZE) return Status(400);
-                controller.frameGenerator.value = (function* () {
-                    while (true) yield buffer;
-                })();
-                controller.beginLoop();
-            },
         },
 
         '/api/frameStream': () =>

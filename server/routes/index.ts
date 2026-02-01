@@ -6,7 +6,7 @@ import { once } from 'events';
 const Status = (status: number) => new Response(null, { status });
 
 Bun.serve({
-    port: 80,
+    port: 4000,
     idleTimeout: 0,
     routes: {
         '/': () => new Response(Bun.file('routes/dist/index.html')),

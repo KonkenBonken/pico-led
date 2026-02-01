@@ -1,4 +1,4 @@
-import { EventEmitter } from 'stream';
+import { EventEmitter } from 'events';
 import Animations, { getAnimationJSON } from './animations';
 import { map } from './utils';
 import dgram from 'dgram';

@@ -8,13 +8,17 @@ export class Frame extends Uint8ClampedArray {
         return frame;
     }
 
-    constructor(size: number) {
-        super(size);
+    readonly whiteChannel: Uint8ClampedArray;
+
+    constructor(ledCount: number) {
+        super(ledCount * 3);
+        this.whiteChannel = new Uint8ClampedArray(ledCount);
     }
 
     copy() {
         const clone = new Frame(this.length);
         clone.set(this);
+        clone.whiteChannel.set(this.whiteChannel);
         return clone;
     }
 
@@ -76,5 +80,5 @@ export class Frame extends Uint8ClampedArray {
 }
 
 export default function SizedFrame(c: Controller) {
-    return () => new Frame(c.FRAME_SIZE);
+    return () => new Frame(c.LED_COUNT);
 }

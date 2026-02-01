@@ -16,7 +16,6 @@ type State = {
 const offState: State = { type: 'solidcolor', color: 0 };
 
 export class Controller extends EventEmitter<{ frame: [Frame] }> {
-    readonly FRAME_SIZE: number;
     readonly FRAME_RATE: number;
     readonly newFrame = SizedFrame(this);
 
@@ -29,7 +28,6 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     constructor(readonly LED_COUNT: number, readonly WHITE = false) {
         super();
-        this.FRAME_SIZE = LED_COUNT * 3;
         this.FRAME_RATE = this.maxFrameRate * 0.9;
 
         watch(this.pingInterval, (_, prev?: NodeJS.Timeout) => clearTimeout(prev));
@@ -39,24 +37,16 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
                 this.animationIteration();
             } else if (state.type === 'solidcolor') {
                 const { color } = state;
-
-                const hasW = !!((color >> 24) & 255);
-                if (this.WHITE && hasW) {
-                    const buffer = new Uint8ClampedArray(this.LED_COUNT * 4);
-                    for (let i = 0; i < buffer.length; i += 4) {
-                        buffer[i + 0] = (color >> 16) & 255;
-                        buffer[i + 1] = (color >> 8) & 255;
-                        buffer[i + 2] = color & 255;
-                        buffer[i + 3] = (color >> 24) & 255;
-                    }
-                    this.sendBuffer(buffer);
-                }
+                const RGB = color & 0xFFFFFF;
+                const W = (color >> 24) & 255;
 
                 const buffer = this.newFrame();
-                buffer.fillColor(color);
+                buffer.fillColor(RGB);
+
+                if (this.WHITE) buffer.whiteChannel.fill(W);
 
                 buffer.scale((this.brightness.value / 256) * this.fadeBrightness);
-                if (this.WHITE && !hasW) this.sendBuffer(buffer.toGrbw());
+                if (this.WHITE && !W) this.sendBuffer(buffer.toGrbw());
                 if (!this.WHITE) this.sendBuffer(buffer.toGrb());
                 this.emit('frame', buffer.copy());
             }

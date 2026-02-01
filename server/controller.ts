@@ -32,14 +32,12 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         this.FRAME_SIZE = LED_COUNT * 3;
         this.FRAME_RATE = this.maxFrameRate * 0.9;
 
-        watch(this.runningLoop, (_, prev?: NodeJS.Timeout) => clearInterval(prev));
         watch(this.pingInterval, (_, prev?: NodeJS.Timeout) => clearTimeout(prev));
 
         watch(this.currentState, (state: State) => {
             if (state.type === 'animation') {
-                this.beginLoop();
+                this.animationIteration();
             } else if (state.type === 'solidcolor') {
-                this.stopLoop();
                 const { color } = state;
                 const hasW = !!((color >> 24) & 255);
                 if (this.WHITE && hasW) {
@@ -110,24 +108,11 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         };
     }
 
-    private readonly runningLoop = ref<NodeJS.Timeout | null>(null);
-
-    beginLoop() {
-        this.runningLoop.value ??= setInterval(
-            () => this.animationIteration(),
-            1000 / this.FRAME_RATE
-        );
-    }
-
-    stopLoop() {
-        this.runningLoop.value = null;
-    }
-
     animationIteration() {
         if (this.currentState.value.type !== 'animation') return;
 
         const rawFrame = this.currentState.value.frameGenerator.next().value;
-        if (!rawFrame) return this.stopLoop();
+        if (!rawFrame) return this.currentState.value = offState;
 
         this.emit('frame', rawFrame);
         let frame = rawFrame.copy();
@@ -136,6 +121,11 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
         const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
         this.sendBuffer(buffer);
+
+        setTimeout(
+            () => this.animationIteration(),
+            1000 / this.FRAME_RATE
+        );
     }
 
     private readonly pingInterval = ref<NodeJS.Timeout | null>(null);

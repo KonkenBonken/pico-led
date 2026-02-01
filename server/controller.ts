@@ -114,18 +114,15 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     private readonly pingInterval = ref<NodeJS.Timeout | null>(null);
 
-    sendFrame(_frame: Frame) {
+    sendFrame(_frame = this.newFrame()) {
         this.emit('frame', _frame);
+        this.pingInterval.value = setTimeout(() => this.sendFrame(_frame), 10e3);
+
         const frame = _frame.copy();
         frame.scale((this.brightness.value / 256) * this.fadeBrightness);
-        this.sendBuffer(this.WHITE ? frame.toGrbw() : frame.toGrb());
-    }
 
-    sendBuffer(buffer?: Uint8ClampedArray) {
-        if (!buffer)
-            buffer = new Uint8ClampedArray(this.LED_COUNT * (this.WHITE ? 4 : 3));
+        const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
         this.socket.send(buffer, 0, buffer.length, 12345, '192.168.0.16');
-        this.pingInterval.value = setTimeout(() => this.sendBuffer(buffer), 10e3);
     }
 
     toJSON() {

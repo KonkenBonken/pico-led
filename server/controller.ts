@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ref } from '@vue/reactivity';
+import { ref, watch } from '@vue/reactivity';
 import Animations, { getAnimationJSON } from './animations';
 import { map } from './utils';
 import dgram from 'dgram';
@@ -19,6 +19,9 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         super();
         this.FRAME_SIZE = LED_COUNT * 3;
         this.FRAME_RATE = this.maxFrameRate * 0.9;
+
+        watch(this.runningLoop, (_, prev?: NodeJS.Timeout) => clearInterval(prev));
+        watch(this.pingInterval, (_, prev?: NodeJS.Timeout) => clearTimeout(prev));
     }
 
     private get maxFrameRate() {
@@ -85,10 +88,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     stopLoop() {
-        if (this.runningLoop.value)
-            clearInterval(this.runningLoop.value);
-        else
-            this.runningLoop.value = null;
+        this.runningLoop.value = null;
     }
 
     animationIteration() {
@@ -110,8 +110,6 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         if (!buffer)
             buffer = new Uint8ClampedArray(this.LED_COUNT * (this.WHITE ? 4 : 3));
         this.socket.send(buffer, 0, buffer.length, 12345, '192.168.0.16');
-        if (this.pingInterval.value)
-            clearTimeout(this.pingInterval.value);
         this.pingInterval.value = setTimeout(() => this.sendBuffer(buffer), 10e3);
     }
 

@@ -46,8 +46,8 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
                 if (this.WHITE) buffer.whiteChannel.fill(W);
 
                 buffer.scale((this.brightness.value / 256) * this.fadeBrightness);
-                if (this.WHITE && !W) this.sendBuffer(buffer.toGrbw());
-                if (!this.WHITE) this.sendBuffer(buffer.toGrb());
+                if (this.WHITE && !W) buffer.populateWhiteChannel();
+                this.sendBuffer(buffer.toGrb());
                 this.emit('frame', buffer.copy());
             }
         });
@@ -107,7 +107,8 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
         frame.scale((this.brightness.value / 256) * this.fadeBrightness);
 
-        const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
+        if (this.WHITE) frame.populateWhiteChannel();
+        const buffer = frame.toGrb();
         this.sendBuffer(buffer);
 
         setTimeout(

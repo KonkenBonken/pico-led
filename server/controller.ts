@@ -40,15 +40,15 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
                 const RGB = color & 0xFFFFFF;
                 const W = (color >> 24) & 255;
 
-                const buffer = this.newFrame();
-                buffer.fillColor(RGB);
+                const frame = this.newFrame();
+                frame.fillColor(RGB);
 
-                if (this.WHITE) buffer.whiteChannel.fill(W);
+                if (this.WHITE) {
+                    if (W) frame.whiteChannel.fill(W);
+                    else frame.populateWhiteChannel();
+                }
 
-                buffer.scale((this.brightness.value / 256) * this.fadeBrightness);
-                if (this.WHITE && !W) buffer.populateWhiteChannel();
-                this.sendBuffer(buffer.toGrb());
-                this.emit('frame', buffer.copy());
+                this.sendFrame(frame);
             }
         });
 
@@ -99,17 +99,12 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     animationIteration() {
         if (this.currentState.value.type !== 'animation') return;
 
-        const rawFrame = this.currentState.value.frameGenerator.next().value;
-        if (!rawFrame) return this.currentState.value = offState;
-
-        this.emit('frame', rawFrame);
-        let frame = rawFrame.copy();
-
-        frame.scale((this.brightness.value / 256) * this.fadeBrightness);
+        const _frame = this.currentState.value.frameGenerator.next().value;
+        if (!_frame) return this.currentState.value = offState;
+        const frame = _frame.copy();
 
         if (this.WHITE) frame.populateWhiteChannel();
-        const buffer = frame.toGrb();
-        this.sendBuffer(buffer);
+        this.sendFrame(frame);
 
         setTimeout(
             () => this.animationIteration(),
@@ -118,6 +113,13 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     private readonly pingInterval = ref<NodeJS.Timeout | null>(null);
+
+    sendFrame(_frame: Frame) {
+        this.emit('frame', _frame);
+        const frame = _frame.copy();
+        frame.scale((this.brightness.value / 256) * this.fadeBrightness);
+        this.sendBuffer(this.WHITE ? frame.toGrbw() : frame.toGrb());
+    }
 
     sendBuffer(buffer?: Uint8ClampedArray) {
         if (!buffer)

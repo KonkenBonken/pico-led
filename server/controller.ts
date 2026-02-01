@@ -62,9 +62,16 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
                     buffer[i + 1] = (color >> 8) & 255;
                     buffer[i + 2] = color & 255;
                 }
+                buffer.scale((this.brightness.value / 256) * this.fadeBrightness);
                 if (this.WHITE && !hasW) this.sendBuffer(buffer.toGrbw());
                 if (!this.WHITE) this.sendBuffer(buffer.toGrb());
                 this.emit('frame', buffer.copy());
+            }
+        });
+
+        watch(this.brightness, () => {
+            if (this.currentState.value.type === 'solidcolor') {
+                this.currentState.value = { ...this.currentState.value };
             }
         });
     }

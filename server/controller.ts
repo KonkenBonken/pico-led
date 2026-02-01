@@ -6,14 +6,14 @@ import dgram from 'dgram';
 import SizedFrame, { type Frame } from './Frame';
 
 type State = {
-    type: 'off'
-} | {
     type: 'animation'
     frameGenerator: Generator<Frame, void, never>
 } | {
     type: 'solidcolor'
     color: number
 };
+
+const offState: State = { type: 'solidcolor', color: 0 };
 
 export class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly FRAME_SIZE: number;
@@ -22,7 +22,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     readonly socket = dgram.createSocket('udp4');
 
-    private readonly currentState = shallowRef<Readonly<State>>({ type: 'off' });
+    private readonly currentState = shallowRef<Readonly<State>>(offState);
 
     readonly brightness = ref(16);
     speed = 128;
@@ -36,10 +36,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         watch(this.pingInterval, (_, prev?: NodeJS.Timeout) => clearTimeout(prev));
 
         watch(this.currentState, (state: State) => {
-            if (state.type === 'off') {
-                this.solidColor(0);
-                this.fadeDuration = Infinity;
-            } else if (state.type === 'animation') {
+            if (state.type === 'animation') {
                 this.beginLoop();
             } else if (state.type === 'solidcolor') {
                 this.stopLoop();
@@ -93,7 +90,8 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         this.fadeStart = Date.now();
 
         setTimeout(() => {
-            this.currentState.value = { type: 'off' };
+            this.currentState.value = offState;
+            this.fadeDuration = Infinity;
         }, 500);
     }
 

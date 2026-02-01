@@ -37,9 +37,6 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
         setTimeout(() => {
             this.solidColor(0);
-            this.stopLoop();
-            this.emit('frame', this.newFrame());
-            this.sendBuffer();
             this.fadeDuration = Infinity;
         }, 500);
     }

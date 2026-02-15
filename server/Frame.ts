@@ -8,35 +8,55 @@ export class Frame extends Uint8ClampedArray {
         return frame;
     }
 
-    constructor(size: number) {
-        super(size);
+    readonly whiteChannel: Uint8ClampedArray;
+
+    constructor(ledCount: number) {
+        super(ledCount * 3);
+        this.whiteChannel = new Uint8ClampedArray(ledCount);
     }
 
     copy() {
         const clone = new Frame(this.length);
         clone.set(this);
+        clone.whiteChannel.set(this.whiteChannel);
         return clone;
     }
 
-    toGrbw() {
+    fillColor(color: number[] | number) {
+        if (!Array.isArray(color))
+            this.fillColor([
+                (color >> 16) & 255,
+                (color >> 8) & 255,
+                (color >> 0) & 255
+            ]);
+        else
+            for (let i = 0; i < this.length; i++)
+                this[i] = color[i % color.length];
+    }
+
+    populateWhiteChannel() {
         // RGBW(150, 66, 6, 0) ≡ RGBW(0, 0, 0, 64)
         const Rw = 2.34375;
         const Gw = 1.03125;
         const Bw = 0.09375;
 
-        const clone = new Uint8ClampedArray((this.length / 3) * 4);
-        let j = 0;
-        for (let i = 0; i < this.length; i += 3, j++) {
+        for (let i = 0; i < this.length; i += 3) {
             let W = Math.min(this[i + 0] / Rw, this[i + 1] / Gw, this[i + 2] / Bw);
             W = Math.max(0, W);
 
-            [clone[i + 0 + j], clone[i + 1 + j], clone[i + 2 + j], clone[i + 3 + j]] = [
-                this[i + 1] - W * Gw,
-                this[i + 0] - W * Rw,
-                this[i + 2] - W * Bw,
-                W,
-            ];
+            this[i + 0] -= W * Rw;
+            this[i + 1] -= W * Gw;
+            this[i + 2] -= W * Bw;
+            this.whiteChannel[i / 3] = W;
         }
+    }
+
+    toGrbw() {
+        const clone = new Uint8ClampedArray(this.length + this.whiteChannel.length);
+        for (let i = 0; i < clone.length; i += 4)
+            [clone[i], clone[i + 1], clone[i + 2]] = [this[i + 1], this[i], this[i + 2]];
+        for (let i = 3; i < this.whiteChannel.length; i += 4)
+            clone[i] = this.whiteChannel[i / 4];
         return clone;
     }
 
@@ -64,5 +84,5 @@ export class Frame extends Uint8ClampedArray {
 }
 
 export default function SizedFrame(c: Controller) {
-    return () => new Frame(c.FRAME_SIZE);
+    return () => new Frame(c.LED_COUNT);
 }

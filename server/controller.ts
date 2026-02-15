@@ -72,13 +72,19 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     turnOff() {
-        this.fadeDuration = 500;
-        this.fadeStart = Date.now();
+        this.startFade(500);
+    }
+
+    startFade(duration: number) {
+        const now = Date.now();
+        this.fadeDuration = duration;
+        this.fadeStart = now;
 
         setTimeout(() => {
+            if (this.fadeStart !== now) return;
             this.currentState.value = offState;
             this.fadeDuration = Infinity;
-        }, 500);
+        }, duration + 200);
     }
 
 

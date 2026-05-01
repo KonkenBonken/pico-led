@@ -69,22 +69,22 @@ const Animations = {
         previewFrame: 17e4,
         *frames(c) {
             const buffer = c.newFrame();
-            let frame = 1;
             let lastColor = 0;
 
             while (true) {
-                const color = Math.random() * 256 ** 3;
-                for (let i = 0; i < buffer.length; i += 3) {
-                    for (let j = 0; j < 3; j++) buffer[i + j] = (color >> (j * 8)) & 255;
-                    if (--frame < 1)
-                        do {
-                            const interpolated = clr_interpolate(lastColor, color, frame + 1);
-                            for (let j = 0; j < 3; j++) buffer[i + j + 3] = (interpolated >> (j * 8)) & 255;
-                            yield buffer;
-                            frame += c.speed / 5 / c.FRAME_RATE;
-                        } while (frame < 0);
+                const nextColor = Math.random() * 256 ** 3;
+                let i = 0;
+                const f = (x: number) => -x / 30 + i;
+                while (true) {
+                    for (let x = 0; x < buffer.length; x += 3) {
+                        const color = clr_interpolate(lastColor, nextColor, f(x));
+                        for (let j = 0; j < 3; j++) buffer[x + j] = (color >> (j * 8)) & 255;
+                    }
+                    yield buffer;
+                    i += c.speed / 50 / c.FRAME_RATE;
+                    if (f(buffer.length) >= 0) break;
                 }
-                lastColor = color;
+                lastColor = nextColor;
             }
         },
     },

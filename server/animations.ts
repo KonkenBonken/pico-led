@@ -1,6 +1,6 @@
 import noisejs from 'noisejs';
 import convert from 'color-convert';
-import { map } from './utils';
+import { clr_interpolate, map } from './utils';
 import { Controller } from './controller';
 import type { Frame } from './Frame';
 
@@ -70,6 +70,7 @@ const Animations = {
         *frames(c) {
             const buffer = c.newFrame();
             let frame = 1;
+            let lastColor = 0;
 
             while (true) {
                 const color = Math.random() * 256 ** 3;
@@ -77,10 +78,13 @@ const Animations = {
                     for (let j = 0; j < 3; j++) buffer[i + j] = (color >> (j * 8)) & 255;
                     if (--frame < 1)
                         do {
+                            const interpolated = clr_interpolate(lastColor, color, frame + 1);
+                            for (let j = 0; j < 3; j++) buffer[i + j + 3] = (interpolated >> (j * 8)) & 255;
                             yield buffer;
                             frame += c.speed / 5 / c.FRAME_RATE;
                         } while (frame < 0);
                 }
+                lastColor = color;
             }
         },
     },

@@ -150,6 +150,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     sendMicroFunction(codeBuffer: Uint8ClampedArray) {
+        this.pingInterval.value = null;
         this.sendBuffer(codeBuffer);
     }
 

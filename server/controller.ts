@@ -87,8 +87,10 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         }, duration + 200);
     }
 
+    private animationInterval = setTimeout(() => 0);
 
     startAnimation(name: keyof typeof Animations) {
+        clearTimeout(this.animationInterval);
         this.currentState.value = {
             type: 'animation',
             frameGenerator: Animations[name].frames(this)
@@ -112,7 +114,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         if (this.WHITE) frame.populateWhiteChannel();
         this.sendFrame(frame);
 
-        setTimeout(
+        this.animationInterval = setTimeout(
             () => this.animationIteration(),
             1000 / this.FRAME_RATE
         );

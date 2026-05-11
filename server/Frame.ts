@@ -54,9 +54,7 @@ export class Frame extends Uint8ClampedArray {
     toGrbw() {
         const clone = new Uint8ClampedArray(this.length + this.whiteChannel.length);
         for (let i = 0; i < clone.length; i += 4)
-            [clone[i], clone[i + 1], clone[i + 2]] = [this[i + 1], this[i], this[i + 2]];
-        for (let i = 3; i < this.whiteChannel.length; i += 4)
-            clone[i] = this.whiteChannel[i / 4];
+            [clone[i], clone[i + 1], clone[i + 2], clone[i + 3]] = [this[i + 1], this[i], this[i + 2], this.whiteChannel[i / 4]];
         return clone;
     }
 

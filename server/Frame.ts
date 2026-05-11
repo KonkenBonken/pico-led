@@ -16,7 +16,7 @@ export class Frame extends Uint8ClampedArray {
     }
 
     copy() {
-        const clone = new Frame(this.length);
+        const clone = new Frame(this.length / 3);
         clone.set(this);
         clone.whiteChannel.set(this.whiteChannel);
         return clone;

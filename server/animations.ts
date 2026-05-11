@@ -73,12 +73,12 @@ const Animations = {
             from random import getrandbits
             
             def f():
-                buf = bytearray(${c.FRAME_SIZE})
+                buf = bytearray(${c.LED_COUNT * 4})
                 frame = 1
                 
                 while True:
                     color = getrandbits(24).to_bytes(3) 
-                    for i in range(0, ${c.FRAME_SIZE}, 3):
+                    for i in range(0, ${c.LED_COUNT * 4}, 3):
                         buf[i:i+3] = color
                         yield buf
         `);

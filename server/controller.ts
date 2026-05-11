@@ -9,6 +9,9 @@ type State = {
     type: 'animation'
     frameGenerator: Generator<Frame, void, never>
 } | {
+    type: 'microfunction',
+    codeBuffer: Uint8ClampedArray
+} | {
     type: 'solidcolor'
     color: number
 };
@@ -49,6 +52,8 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
                 }
 
                 this.sendFrame(frame);
+            } else if (state.type === 'microfunction') {
+                this.sendMicroFunction(state.codeBuffer);
             }
         });
 
@@ -89,10 +94,17 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
 
     startAnimation(name: keyof typeof Animations) {
-        this.currentState.value = {
-            type: 'animation',
-            frameGenerator: Animations[name].frames(this)
-        };
+        const animation = Animations[name];
+        if ('microFunction' in animation)
+            this.currentState.value = {
+                type: 'microfunction',
+                codeBuffer: animation.microFunction(this).buffer
+            };
+        else
+            this.currentState.value = {
+                type: 'animation',
+                frameGenerator: animation.frames(this)
+            };
     }
 
     solidColor(color: number) {
@@ -128,15 +140,19 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         frame.scale((this.brightness.value / 256) * this.fadeBrightness);
 
         const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
-        this.sendBuffer(buffer);
-    }
 
-    sendBuffer(buffer?: Uint8ClampedArray) {
-        if (!buffer)
-            buffer = new Uint8ClampedArray(this.LED_COUNT * (this.WHITE ? 4 : 3));
         const flaggedBuffer = new Uint8ClampedArray(buffer.length + 1);
         flaggedBuffer.set(buffer, 1);
-        this.socket.send(flaggedBuffer, 0, flaggedBuffer.length, 12345, '192.168.0.16');
+
+        this.sendBuffer(flaggedBuffer);
+    }
+
+    sendMicroFunction(codeBuffer: Uint8ClampedArray) {
+        this.sendBuffer(codeBuffer);
+    }
+
+    sendBuffer(buffer: Uint8ClampedArray) {
+        this.socket.send(buffer, 0, buffer.length, 12345, '192.168.0.16');
     }
 
     toJSON() {

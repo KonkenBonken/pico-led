@@ -92,8 +92,10 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         }, duration + 200);
     }
 
+    private animationInterval = setTimeout(() => 0);
 
     startAnimation(name: keyof typeof Animations) {
+        clearTimeout(this.animationInterval);
         const animation = Animations[name];
         if ('microFunction' in animation)
             this.currentState.value = {
@@ -124,7 +126,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         if (this.WHITE) frame.populateWhiteChannel();
         this.sendFrame(frame);
 
-        setTimeout(
+        this.animationInterval = setTimeout(
             () => this.animationIteration(),
             1000 / this.FRAME_RATE
         );

@@ -1,6 +1,6 @@
 import noisejs from 'noisejs';
 import convert from 'color-convert';
-import { map } from './utils';
+import { clr_interpolate, map } from './utils';
 import { Controller } from './controller';
 import type { Frame } from './Frame';
 import { MicroFunction } from './MicroFunction.ts';
@@ -34,8 +34,40 @@ const Animations = {
         },
     },
 
+    Mello: {
+        previewSize: 100,
+        * frames(c) {
+            const buffer = c.newFrame();
+
+            const segmentSize = 10;
+            const colors = [
+                0x0693C6,
+                0x7912B5,
+                0xF6047D,
+                0xE08700
+            ];
+            let colorIndex = 0;
+
+            while (true) {
+                for (let i = 0; i < buffer.length; i += 3 * segmentSize) {
+                    colorIndex += Math.floor(Math.random() * (colors.length - 1)) + 1;
+                    colorIndex %= colors.length;
+                    const color = colors[colorIndex];
+
+
+                    for (let j = 0; j < segmentSize; j++)
+                        for (let k = 0; k < 3; k++)
+                            buffer[i + j * 3 + k] = (color >> (k * 8)) & 255;
+                }
+                for (let f = 0; f < c.FRAME_RATE * 100 / c.speed; f++)
+                    yield buffer;
+            }
+        }
+    },
+
     ColorSwipe: {
-        previewFrame: 18e4,
+        previewSize: 8,
+        previewFrame: 17e4,
         microFunction(c) {
             return new MicroFunction(`
             from random import getrandbits
@@ -53,18 +85,22 @@ const Animations = {
         },
         *frames(c) {
             const buffer = c.newFrame();
-            let frame = 1;
+            let lastColor = 0;
 
             while (true) {
-                const color = Math.random() * 256 ** 3;
-                for (let i = 0; i < buffer.length; i += 3) {
-                    for (let j = 0; j < 3; j++) buffer[i + j] = (color >> (j * 8)) & 255;
-                    if (--frame < 1)
-                        do {
-                            yield buffer;
-                            frame += c.speed / 5 / c.FRAME_RATE;
-                        } while (frame < 0);
+                const nextColor = Math.random() * 256 ** 3;
+                let i = 0;
+                const f = (x: number) => -x / 30 + i;
+                while (true) {
+                    for (let x = 0; x < buffer.length; x += 3) {
+                        const color = clr_interpolate(lastColor, nextColor, f(x));
+                        for (let j = 0; j < 3; j++) buffer[x + j] = (color >> (j * 8)) & 255;
+                    }
+                    yield buffer;
+                    i += c.speed / 50 / c.FRAME_RATE;
+                    if (f(buffer.length) >= 0) break;
                 }
+                lastColor = nextColor;
             }
         }
     }
@@ -72,6 +108,7 @@ const Animations = {
     string,
     {
         previewFrame?: number;
+        previewSize?: number;
         frames(c: Controller): Generator<Frame, void, never>;
         microFunction?(c: Controller): MicroFunction
     }
@@ -86,7 +123,7 @@ export function animationExists(name: string): name is keyof typeof Animations {
 export function getFramePreview(
     animation: (typeof Animations)[keyof typeof Animations]
 ) {
-    const c = new Controller(30);
+    const c = new Controller(('previewSize' in animation) ? animation.previewSize : 45);
     if ('previewFrame' in animation) c.speed = animation.previewFrame;
     else c.speed = 0;
 

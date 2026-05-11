@@ -1,0 +1,1 @@
+tar cf - server | pigz | ssh root@raspberrypi.local 'gzip -d | tar xf - -C ~/src/led'

@@ -1,12 +1,11 @@
 import { animationExists } from '../animations';
 import controller from '../controller';
-import { Frame } from '../Frame';
 import { once } from 'events';
 
 const Status = (status: number) => new Response(null, { status });
 
 Bun.serve({
-    port: 80,
+    port: 4000,
     idleTimeout: 0,
     routes: {
         '/': () => new Response(Bun.file('routes/dist/index.html')),
@@ -24,7 +23,7 @@ Bun.serve({
             const value = +req.params.value;
             if (!Number.isInteger(value) || value < 0 || value >= 256)
                 return Status(400);
-            controller.brightness = value;
+            controller.brightness.value = value;
             return Status(200);
         },
 
@@ -47,10 +46,7 @@ Bun.serve({
         '/api/startFade/:value': req => {
             const value = parseInt(req.params.value);
             if (!Number.isInteger(value) || value < 0) return Status(400);
-            controller.fadeDuration = value;
-            controller.fadeStart = Date.now();
-            if (value === 0) controller.fadeDuration = Infinity;
-
+            controller.startFade(value);
             return Status(200);
         },
 
@@ -71,18 +67,6 @@ Bun.serve({
             if (!animationExists(name)) return Status(400);
             controller.startAnimation(name);
             return Status(200);
-        },
-
-        '/api/framebuffer': {
-            POST: async req => {
-                const buffer = Frame.fromBuffer(await req.arrayBuffer());
-                console.log(buffer);
-                if (buffer.length !== controller.FRAME_SIZE) return Status(400);
-                controller.frameGenerator = (function* () {
-                    while (true) yield buffer;
-                })();
-                controller.beginLoop();
-            },
         },
 
         '/api/frameStream': () =>

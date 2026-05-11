@@ -15,8 +15,22 @@ const colors = [
     { r: 0xe4, g: 0x3f, b: 0x00 },
 ];
 
+function onTouchMove(e: TouchEvent) {
+    const touch = e.touches[0];
+    onColorPress({
+        clientX: touch.clientX, clientY: touch.clientY,
+        currentTarget: e.currentTarget
+    });
+}
+
 function onMouseMove(e: MouseEvent | PointerEvent) {
-    if (!(e.buttons & 1)) return;
+    if (e.buttons & 1)
+        onColorPress(e);
+}
+
+function onColorPress(e: { clientX: number, clientY: number, currentTarget: EventTarget | null }) {
+    if (!e.currentTarget) return;
+
     const el = e.currentTarget as HTMLDivElement;
     const rect = el.getBoundingClientRect();
 
@@ -60,7 +74,8 @@ function onMouseMove(e: MouseEvent | PointerEvent) {
 </script>
 
 <template>
-    <div id="wheel" @mousemove="onMouseMove" @mousedown="onMouseMove">
+    <div id="wheel" @mousemove="onMouseMove" @mousedown="onMouseMove"
+         @touchstart="onTouchMove" @touchmove="onTouchMove">
         <div
             :style="{
                 left: pickerPos[0] + 'px',

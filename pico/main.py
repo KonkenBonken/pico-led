@@ -49,7 +49,7 @@ while True:
             framegen = ns["f"]()
             s.settimeout(0.01)
 
-    except TimeoutError:
+    except Exception:
         if framegen:
             try:
                 np.buf = bytearray(next(framegen))

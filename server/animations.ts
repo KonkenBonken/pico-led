@@ -69,17 +69,19 @@ const Animations = {
         previewSize: 8,
         previewFrame: 17e4,
         microFunction(c) {
+            const channels = c.WHITE ? 4 : 3;
+
             return new MicroFunction(`
             from random import getrandbits
             
             def f():
-                buf = bytearray(${c.LED_COUNT * 4})
+                buf = bytearray(${c.LED_COUNT * channels})
                 frame = 1
                 
                 while True:
-                    color = getrandbits(24).to_bytes(3) 
-                    for i in range(0, ${c.LED_COUNT * 4}, 3):
-                        buf[i:i+3] = color
+                    color = getrandbits(${8 * channels}).to_bytes(${channels}) 
+                    for i in range(0, ${c.LED_COUNT * channels}, ${channels}):
+                        buf[i:i+${channels}] = color
                         yield buf
         `);
         },

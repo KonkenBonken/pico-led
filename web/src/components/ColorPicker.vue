@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const color = defineModel<string>();
 const pickerPos = ref<[number, number]>([0, 0]);
+
+function rgbToHex(r: number, g: number, b: number) {
+    return '#' +
+        r.toString(16).padStart(2, '0') +
+        g.toString(16).padStart(2, '0') +
+        b.toString(16).padStart(2, '0');
+
+}
 
 // Based on https://stackoverflow.com/a/69963510/12356941
 const colors = [
@@ -63,14 +71,16 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
     clrG = Math.round(clrG * cw + 255 * ww);
     clrB = Math.round(clrB * cw + 255 * ww);
 
-    const hex =
-        '#' +
-        clrR.toString(16).padStart(2, '0') +
-        clrG.toString(16).padStart(2, '0') +
-        clrB.toString(16).padStart(2, '0');
-
-    color.value = hex;
+    color.value = rgbToHex(clrR, clrG, clrB);
 }
+
+const red = ref(0);
+const green = ref(0);
+const blue = ref(0);
+
+watch([red, green, blue], ([clrR, clrG, clrB]) =>
+    color.value = rgbToHex(clrR, clrG, clrB)
+);
 </script>
 
 <template>
@@ -84,9 +94,14 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
             }"
         />
     </div>
+    <input type="range" class="clr-slider" id="slider-red" :min="0" :max="255" :step="1" v-model.number="red" />
+    <input type="range" class="clr-slider" id="slider-green" :min="0" :max="255" :step="1" v-model.number="green" />
+    <input type="range" class="clr-slider" id="slider-blue" :min="0" :max="255" :step="1" v-model.number="blue" />
 </template>
 
 <style lang="scss">
+@use '../colors.scss' as *;
+
 #wheel {
     width: 200px;
     height: 200px;
@@ -95,6 +110,12 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
         radial-gradient(white, transparent 80%),
         conic-gradient(#e43f00, #fae410, #55cc3b, #09adff, #6b0efd, #e70d86, #e43f00);
     cursor: pointer;
+
+    :has(.clr-slider:active) & {
+        background:
+            radial-gradient(transparent, cubic-bezier(0.39, 0, 0.58, 1.01), $clr-surface-a0),
+            rgb(calc(1 * v-bind(red)), calc(1 * v-bind(green)), calc(1 * v-bind(blue)));
+    }
 
     > div {
         position: relative;
@@ -111,6 +132,52 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
     &:active > div {
         opacity: 1;
         transition: none;
+    }
+}
+
+.clr-slider {
+    margin-bottom: .5lh;
+    box-sizing: border-box;
+
+    &::-webkit-slider-thumb {
+        opacity: 0;
+        border: 1px solid white;
+        transition: opacity 1s ease 2s;
+    }
+}
+
+:has(.clr-slider:active) > .clr-slider {
+    border: 1px solid #fff3;
+
+    &::-webkit-slider-thumb {
+        transition-delay: 0s;
+        transition-duration: .2s;
+        opacity: 1;
+    }
+}
+
+#slider-red {
+    margin-top: .5lh;
+    background: linear-gradient(to right, $clr-surface-a0, rgb(255, 0, 0));
+
+    &::-webkit-slider-thumb, :has(.clr-slider:active) > & {
+        background: color-mix(in hsl, rgb(255, 0, 0) calc(100% / 255 * v-bind(red)), $clr-surface-a0);
+    }
+}
+
+#slider-green {
+    background: linear-gradient(to right, $clr-surface-a0, rgb(0, 220, 0));
+
+    &::-webkit-slider-thumb, :has(.clr-slider:active) > & {
+        background: color-mix(in hsl, rgb(0, 220, 0) calc(100% / 255 * v-bind(green)), $clr-surface-a0);
+    }
+}
+
+#slider-blue {
+    background: linear-gradient(to right, $clr-surface-a0, rgb(40, 40, 255));
+
+    &::-webkit-slider-thumb, :has(.clr-slider:active) > & {
+        background: color-mix(in hsl, rgb(40, 40, 255) calc(100% / 255 * v-bind(blue)), $clr-surface-a0);
     }
 }
 </style>

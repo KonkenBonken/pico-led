@@ -56,6 +56,9 @@ watch(speed, speed => fetchApi('speed/' + speed));
 const color = ref('#ff00aa');
 watch(color, color => fetchApi('solidColor/' + color.slice(1)));
 
+const showing = ref('');
+provide('showing', showing);
+
 const fadeInput = ref<number>(15);
 const startFade = () => fetchApi('startFade/' + Math.round(fadeInput.value * 60e3));
 
@@ -65,6 +68,7 @@ async function updateStatus() {
     brightness.value = res.brightness;
     speed.value = res.speed;
     animations.value = res.animations;
+    showing.value = res.showing;
     supportsRGBW.value = res.supportsRGBW;
 }
 updateStatus();

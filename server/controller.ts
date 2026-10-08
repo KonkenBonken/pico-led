@@ -7,9 +7,11 @@ import SizedFrame, { type Frame } from './Frame';
 
 type State = {
     type: 'animation'
+    name: keyof typeof Animations
     frameGenerator: Generator<Frame, void, never>
 } | {
     type: 'microfunction',
+    name: keyof typeof Animations
     codeBuffer: Uint8ClampedArray
 } | {
     type: 'solidcolor'
@@ -100,11 +102,13 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         if ('microFunction' in animation && this.RICH_UDP)
             this.currentState.value = {
                 type: 'microfunction',
+                name,
                 codeBuffer: animation.microFunction(this).buffer
             };
         else
             this.currentState.value = {
                 type: 'animation',
+                name,
                 frameGenerator: animation.frames(this)
             };
     }
@@ -162,7 +166,10 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     toJSON() {
+        const state = this.currentState.value;
         return {
+            stateType: state.type,
+            showing: state.type === 'solidcolor' ? state.color : state.name,
             brightness: this.brightness.value,
             speed: this.speed,
             animations: getAnimationJSON(),

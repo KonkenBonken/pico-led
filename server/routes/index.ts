@@ -1,5 +1,5 @@
 import { animationExists } from '../animations';
-import controller from '../controller';
+import getController from '../controller';
 import { once } from 'events';
 
 const Status = (status: number) => new Response(null, { status });
@@ -12,49 +12,50 @@ Bun.serve({
         '/assets/:file': req =>
             new Response(Bun.file('routes/dist/assets/' + req.params.file)),
 
-        '/api/turnOff': () => {
-            controller.turnOff();
+        '/api/:strip/turnOff': (req) => {
+            getController(req).turnOff();
             return Status(200);
         },
 
-        '/api/status': () => Response.json(controller),
+        '/api/:strip/status': (req) => Response.json(getController(req)),
 
-        '/api/brightness/:value': req => {
+        '/api/:strip/brightness/:value': req => {
             const value = +req.params.value;
             if (!Number.isInteger(value) || value < 0 || value >= 256)
                 return Status(400);
-            controller.brightness.value = value;
+            getController(req).brightness.value = value;
             return Status(200);
         },
 
-        '/api/speed/:value': req => {
+        '/api/:strip/speed/:value': req => {
             const value = +req.params.value;
             if (!Number.isInteger(value) || value < 0 || value >= 256)
                 return Status(400);
-            controller.speed = value;
+            getController(req).speed = value;
             return Status(200);
         },
 
-        '/api/solidColor/:value': req => {
+        '/api/:strip/solidColor/:value': req => {
             const value = parseInt(req.params.value, 16);
             if (!Number.isInteger(value) || value < 0 || value >= 2 ** 32)
                 return Status(400);
-            controller.solidColor(value);
+            getController(req).solidColor(value);
             return Status(200);
         },
 
-        '/api/startFade/:value': req => {
+        '/api/:strip/startFade/:value': req => {
             const value = parseInt(req.params.value);
             if (!Number.isInteger(value) || value < 0) return Status(400);
-            controller.startFade(value);
+            getController(req).startFade(value);
             return Status(200);
         },
 
-        '/api/wake/:value': req => {
+        '/api/:strip/wake/:value': req => {
             const value = parseInt(req.params.value);
             const date = new Date(value);
             const duration = 30 * 60e3;
             if (isNaN(+date)) return Status(400);
+            const controller = getController(req);
             controller.fadeDuration = -duration;
             controller.fadeStart = +date;
             if (value === 0) controller.fadeDuration = Infinity;
@@ -62,16 +63,17 @@ Bun.serve({
             return Status(200);
         },
 
-        '/api/startAnimation/:name': req => {
+        '/api/:strip/startAnimation/:name': req => {
             const name = req.params.name;
             if (!animationExists(name)) return Status(400);
-            controller.startAnimation(name);
+            getController(req).startAnimation(name);
             return Status(200);
         },
 
-        '/api/frameStream': () =>
+        '/api/:strip/frameStream': (req) =>
             new Response(
                 (async function* () {
+                    const controller = getController(req);
                     while (true) {
                         yield (await once(controller, 'frame'))[0];
                         await Bun.sleep(1000 / 30);

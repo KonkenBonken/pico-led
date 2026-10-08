@@ -7,7 +7,12 @@ import SizedFrame, { type Frame } from './Frame';
 
 type State = {
     type: 'animation'
+    name: keyof typeof Animations
     frameGenerator: Generator<Frame, void, never>
+} | {
+    type: 'microfunction',
+    name: keyof typeof Animations
+    codeBuffer: Uint8ClampedArray
 } | {
     type: 'solidcolor'
     color: number
@@ -26,7 +31,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly brightness = ref(16);
     speed = 128;
 
-    constructor(readonly LED_COUNT: number, readonly WHITE = false) {
+    constructor(readonly IP: string, readonly LED_COUNT: number, readonly WHITE = false, readonly RICH_UDP = false) {
         super();
         this.FRAME_RATE = this.maxFrameRate * 0.9;
 
@@ -49,6 +54,8 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
                 }
 
                 this.sendFrame(frame);
+            } else if (state.type === 'microfunction') {
+                this.sendMicroFunction(state.codeBuffer);
             }
         });
 
@@ -91,10 +98,19 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
 
     startAnimation(name: keyof typeof Animations) {
         clearTimeout(this.animationInterval);
-        this.currentState.value = {
-            type: 'animation',
-            frameGenerator: Animations[name].frames(this)
-        };
+        const animation = Animations[name];
+        if ('microFunction' in animation && this.RICH_UDP)
+            this.currentState.value = {
+                type: 'microfunction',
+                name,
+                codeBuffer: animation.microFunction(this).buffer
+            };
+        else
+            this.currentState.value = {
+                type: 'animation',
+                name,
+                frameGenerator: animation.frames(this)
+            };
     }
 
     solidColor(color: number) {
@@ -130,11 +146,30 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         frame.scale((this.brightness.value / 256) * this.fadeBrightness);
 
         const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
-        this.socket.send(buffer, 0, buffer.length, 12345, '192.168.0.16');
+
+        if (!this.RICH_UDP)
+            return this.sendBuffer(buffer);
+
+        const flaggedBuffer = new Uint8ClampedArray(buffer.length + 1);
+        flaggedBuffer.set(buffer, 1);
+
+        this.sendBuffer(flaggedBuffer);
+    }
+
+    sendMicroFunction(codeBuffer: Uint8ClampedArray) {
+        this.pingInterval.value = null;
+        this.sendBuffer(codeBuffer);
+    }
+
+    sendBuffer(buffer: Uint8ClampedArray) {
+        this.socket.send(buffer, 0, buffer.length, 12345, this.IP);
     }
 
     toJSON() {
+        const state = this.currentState.value;
         return {
+            stateType: state.type,
+            showing: state.type === 'solidcolor' ? state.color : state.name,
             brightness: this.brightness.value,
             speed: this.speed,
             animations: getAnimationJSON(),
@@ -143,4 +178,13 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 }
 
-export default new Controller(180, false);
+export const strips = {
+    ws2812: new Controller('192.168.0.16', 180, false, false),
+    sk6812: new Controller('192.168.0.2', 120, true, true)
+}
+
+export default function getController(req: Bun.BunRequest) {
+    const strip = (req.params as { strip: string }).strip;
+    if (!(strip in strips)) throw 'Strip not found';
+    return strips[strip as 'ws2812'];
+}

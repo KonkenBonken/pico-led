@@ -3,6 +3,7 @@ import convert from 'color-convert';
 import { clr_interpolate, map } from './utils';
 import { Controller } from './controller';
 import type { Frame } from './Frame';
+import { MicroFunction } from './MicroFunction.ts';
 
 // Returns RGB frames
 const Animations = {
@@ -67,6 +68,22 @@ const Animations = {
     ColorSwipe: {
         previewSize: 8,
         previewFrame: 17e4,
+        microFunction(c) {
+            const channels = c.WHITE ? 4 : 3;
+
+            return new MicroFunction(`
+            from random import getrandbits
+            
+            def f():
+                buf = bytearray(${c.LED_COUNT * channels})
+                
+                while True:
+                    color = getrandbits(${8 * channels}).to_bytes(${channels}) 
+                    for i in range(0, ${c.LED_COUNT * channels}, ${channels}):
+                        buf[i:i+${channels}] = color
+                        yield buf
+        `);
+        },
         *frames(c) {
             const buffer = c.newFrame();
             let lastColor = 0;
@@ -86,11 +103,16 @@ const Animations = {
                 }
                 lastColor = nextColor;
             }
-        },
-    },
+        }
+    }
 } satisfies Record<
     string,
-    { previewFrame?: number; previewSize?: number; frames(c: Controller): Generator<Frame, void, never> }
+    {
+        previewFrame?: number;
+        previewSize?: number;
+        frames(c: Controller): Generator<Frame, void, never>;
+        microFunction?(c: Controller): MicroFunction
+    }
 >;
 
 export default Animations;
@@ -102,7 +124,7 @@ export function animationExists(name: string): name is keyof typeof Animations {
 export function getFramePreview(
     animation: (typeof Animations)[keyof typeof Animations]
 ) {
-    const c = new Controller(('previewSize' in animation) ? animation.previewSize : 45);
+    const c = new Controller('', ('previewSize' in animation) ? animation.previewSize : 45);
     if ('previewFrame' in animation) c.speed = animation.previewFrame;
     else c.speed = 0;
 

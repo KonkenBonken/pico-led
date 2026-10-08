@@ -1,15 +1,21 @@
 <script setup lang="ts">
+import {inject, type Ref} from "vue";
+
 const { animation } = defineProps<{
     animation: { name: string; preview: string[] };
 }>();
 
-const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
+const showing = inject('showing') as Ref<string>;
+
+const fetchApi = inject('fetchApi') as (route: string) => Promise<Response[]>;
+const startAnimation = (name: string) => fetchApi('startAnimation/' + name).then(() => showing.value = name);
 </script>
 
 <template>
     <button
         id="animation-button"
         @click="startAnimation(animation.name)"
+        :class="showing === animation.name ? 'active' : ''"
         :style="{
             '--preview-frame': `#${animation.preview.join(',#')}`,
         }"
@@ -48,12 +54,19 @@ const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
         ),
         linear-gradient(to right, var(--preview-frame));
 
+    &.active {
+        outline: 4px solid $clr-surface-tonal-a30;
+    }
+
     &:hover,
-    &:focus-visible {
+    &:focus-visible,
+    &.active {
         background-position-y: 25%;
         font-weight: 700;
     }
 
+    &.active:hover,
+    &.active:focus-visible,
     &:active {
         background-position-y: 50%;
         font-weight: 800;

@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import {computed, inject, type Ref, ref} from 'vue';
 
 defineProps<{ supportsRGBW: boolean; }>();
+
+const showing = inject('showing') as Ref<string | number>;
+const renderHandles = computed(() => typeof showing.value === 'number');
 
 const color = defineModel<string>();
 const pickerPos = ref<[number, number]>([0, 0]);
@@ -77,14 +80,24 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
     color.value = rgbToHex(0, clrR, clrG, clrB);
 }
 
-const red = ref(0);
-const green = ref(0);
-const blue = ref(0);
-const white = ref(0);
+const colorNum = computed(() => parseInt((color.value ?? '0').slice(1), 16));
+const red = computed({
+    get: () => (colorNum.value >> 16) & 0xff,
+    set: val => color.value = rgbToHex(white.value, val, green.value, blue.value),
+});
+const green = computed({
+    get: () => (colorNum.value >> 8) & 0xff,
+    set: val => color.value = rgbToHex(white.value, red.value, val, blue.value),
+});
+const blue = computed({
+    get: () => (colorNum.value >> 0) & 0xff,
+    set: val => color.value = rgbToHex(white.value, red.value, green.value, val),
+});
+const white = computed({
+    get: () => (colorNum.value >> 24) & 0xff,
+    set: val => color.value = rgbToHex(val, red.value, green.value, blue.value),
+});
 
-watch([red, green, blue, white], ([clrR, clrG, clrB, clrW]) =>
-    color.value = rgbToHex(clrW, clrR, clrG, clrB)
-);
 </script>
 
 <template>
@@ -94,11 +107,12 @@ watch([red, green, blue, white], ([clrR, clrG, clrB, clrW]) =>
             :style="{
                 left: pickerPos[0] + 'px',
                 top: pickerPos[1] + 'px',
-                backgroundColor: color,
+                backgroundColor: '#' + (color ?? '').slice(3) + 'aa',
             }"
         />
     </div>
-    <input type="range" class="clr-slider" id="slider-red" :min="0" :max="255" :step="1" v-model.number="red" />
+    <input type="range" class="clr-slider" id="slider-red" :min="0" :max="255" :step="1" v-model.number="red"
+           :class="renderHandles ? 'render-handles' : ''" />
     <input type="range" class="clr-slider" id="slider-green" :min="0" :max="255" :step="1" v-model.number="green" />
     <input type="range" class="clr-slider" id="slider-blue" :min="0" :max="255" :step="1" v-model.number="blue" />
     <input type="range" class="clr-slider" id="slider-white" :min="0" :max="255" :step="1" v-model.number="white"
@@ -152,7 +166,7 @@ watch([red, green, blue, white], ([clrR, clrG, clrB, clrW]) =>
     }
 }
 
-:has(.clr-slider:active) > .clr-slider {
+:has(.clr-slider:active, .render-handles) > .clr-slider {
     border: 1px solid #fff3;
 
     &::-webkit-slider-thumb {

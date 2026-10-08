@@ -26,10 +26,11 @@ function toggleStrip(strip: string) {
         selectedStrips.value = new Set(allStrips);
         selectedStrips.value.delete(strip);
     }
+    updateStatus();
 }
 
 function fetchApi(route: string) {
-    return Promise.all([...selectedStrips.value].map(strip =>
+    return Promise.all([...selectedStrips.value].sort().map(strip =>
         fetch(`/api/${strip}/${route}`)
     ));
 }

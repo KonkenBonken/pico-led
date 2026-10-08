@@ -87,6 +87,12 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         this.fadeDuration = duration;
         this.fadeStart = now;
 
+        if (duration === 0) {
+            this.fadeDuration = Infinity;
+            return;
+        }
+
+
         if (this.currentState.value.type === 'solidcolor') {
             this.pingDuration = 2 * 1000 / this.FRAME_RATE;
             this.currentState.value = { ...this.currentState.value };

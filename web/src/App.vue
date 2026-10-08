@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import Peek from './components/Peek.vue';
 import ColorPicker from './components/ColorPicker.vue';
 
@@ -12,6 +12,24 @@ import { faEyeSlash } from '@fortawesome/free-solid-svg-icons/faEyeSlash';
 import AnimationButton from './components/AnimationButton.vue';
 
 const renderPeek = ref(false);
+
+const allStrips = ['ws2812', 'sk6812'];
+const selectedStrips = ref(new Set(allStrips));
+
+function toggleStrip(strip: string) {
+    if (selectedStrips.value.has(strip))
+        selectedStrips.value.delete(strip);
+    else
+        selectedStrips.value.add(strip);
+}
+
+function fetchApi(route: string) {
+    return Promise.all([...selectedStrips.value].map(strip =>
+        fetch(`/api/${strip}/${route}`)
+    ));
+}
+
+provide('fetchApi', fetchApi);
 
 const sliderBrightness = ref(158);
 const brightness = computed({
@@ -26,18 +44,18 @@ const brightness = computed({
 });
 
 const supportsRGBW = ref(false);
-watch(brightness, brightness => fetch('/api/brightness/' + brightness));
+watch(brightness, brightness => fetchApi('brightness/' + brightness));
 const speed = ref(128);
-watch(speed, speed => fetch('/api/speed/' + speed));
+watch(speed, speed => fetchApi('speed/' + speed));
 const color = ref('#ff00aa');
-watch(color, color => fetch('/api/solidColor/' + color.slice(1)));
+watch(color, color => fetchApi('solidColor/' + color.slice(1)));
 
 const fadeInput = ref<number>(15);
-const startFade = () => fetch('api/startFade/' + Math.round(fadeInput.value * 60e3));
+const startFade = () => fetchApi('startFade/' + Math.round(fadeInput.value * 60e3));
 
 const animations = ref<{ name: string; preview: string[] }[]>();
 async function updateStatus() {
-    const res = await fetch('api/status').then(res => res.json());
+    const res = await fetchApi('status').then(res => res[0].json());
     brightness.value = res.brightness;
     speed.value = res.speed;
     animations.value = res.animations;
@@ -46,8 +64,8 @@ async function updateStatus() {
 updateStatus();
 setInterval(updateStatus, 60e3);
 
-const turnOff = () => fetch('api/turnOff');
-const warmWhite = () => fetch('/api/solidColor/ff000000');
+const turnOff = () => fetchApi('turnOff');
+const warmWhite = () => fetchApi('solidColor/ff000000');
 </script>
 
 <template>
@@ -76,6 +94,10 @@ const warmWhite = () => fetch('/api/solidColor/ff000000');
     <button v-if="supportsRGBW" @click="warmWhite">Warm White</button>
     <input type="number" v-model.number="fadeInput" :min="0" />
     <button @click="startFade">Start fade</button>
+    <footer>
+        <input v-for="s in allStrips" type="checkbox" :key="s" :id="s"
+               @change="toggleStrip(s)" :checked="selectedStrips.has(s)" />
+    </footer>
 </template>
 
 <style lang="scss">
@@ -172,6 +194,53 @@ input[type='range'] {
         border-radius: 50%;
         background: $clr-primary-a50;
         cursor: pointer;
+    }
+}
+
+footer {
+    height: 50px;
+    width: 100vw;
+    display: flex;
+    justify-content: space-around;
+    position: fixed;
+    bottom: 2vh;
+    left: 0;
+
+    > input {
+        all: unset;
+        width: 200px;
+        height: 50px;
+        display: inline-block;
+        position: relative;
+        background-color: $clr-surface-a20;
+        border-radius: 8px;
+
+        &::before {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-content: center;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: .1ch;
+            transition: background-color 0.1s, font-weight 0.1s;
+        }
+
+        &:checked {
+            background-image: linear-gradient(to top, rgba($clr-primary-a0, .5), #0000);
+
+            &::before {
+                font-weight: 800;
+            }
+        }
+    }
+
+    > #ws2812::before {
+        content: 'WS2812B';
+    }
+
+    > #sk6812::before {
+        content: 'SK6812';
     }
 }
 </style>

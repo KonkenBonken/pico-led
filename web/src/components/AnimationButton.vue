@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import {inject} from "vue";
+
 const { animation } = defineProps<{
     animation: { name: string; preview: string[] };
 }>();
 
-const startAnimation = (name: string) => fetch('api/startAnimation/' + name);
+const fetchApi = inject('fetchApi') as (route: string) => Promise<Response[]>;
+const startAnimation = (name: string) => fetchApi('startAnimation/' + name);
 </script>
 
 <template>

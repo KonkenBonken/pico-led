@@ -1,6 +1,8 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
+
+const fetchApi = inject('fetchApi') as (route: string) => Promise<Response[]>;
 
 const frame = ref(new Uint8Array());
 const mounted = ref(true);
@@ -19,8 +21,8 @@ const leds = computed(() => {
 
 onMounted(async () => {
     while (mounted.value) {
-        const reader = await fetch('/api/frameStream')
-            .then(res => res.body?.getReader())
+        const reader = await fetchApi('/frameStream')
+            .then(res => res[0].body?.getReader())
             .catch(() => null);
         if (reader) {
             while (mounted.value) {

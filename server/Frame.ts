@@ -78,6 +78,7 @@ export class Frame extends Uint8ClampedArray {
 
     scale(factor: number) {
         for (let i = 0; i < this.length; i++) this[i] *= factor;
+        for (let i = 0; i < this.whiteChannel.length; i++) this.whiteChannel[i] *= factor;
     }
 }
 

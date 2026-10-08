@@ -56,10 +56,10 @@ const supportsRGBW = ref(false);
 watch(brightness, brightness => fetchApi('brightness/' + brightness));
 const speed = ref(128);
 watch(speed, speed => fetchApi('speed/' + speed));
-const color = ref('#ff00aa');
+const color = ref('ff00aa');
 watch(color, color => {
-    fetchApi('solidColor/' + color.slice(1));
-    showing.value = parseInt(color.slice(1), 16);
+    fetchApi('solidColor/' + color);
+    showing.value = parseInt(color, 16);
 });
 
 const fadeInput = ref<number>(15);
@@ -74,7 +74,7 @@ async function updateStatus() {
     showing.value = res.showing;
 
     if (typeof res.showing === 'number')
-        color.value = '#' + res.showing.toString(16);
+        color.value = res.showing.toString(16);
     supportsRGBW.value = res.supportsRGBW;
 }
 updateStatus();

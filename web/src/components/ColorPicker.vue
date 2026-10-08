@@ -10,7 +10,7 @@ const color = defineModel<string>();
 const pickerPos = ref<[number, number]>([0, 0]);
 
 function rgbToHex(w: number, r: number, g: number, b: number) {
-    return '#' +
+    return '' +
         w.toString(16).padStart(2, '0') +
         r.toString(16).padStart(2, '0') +
         g.toString(16).padStart(2, '0') +
@@ -80,7 +80,7 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
     color.value = rgbToHex(0, clrR, clrG, clrB);
 }
 
-const colorNum = computed(() => parseInt((color.value ?? '0').slice(1), 16));
+const colorNum = computed(() => parseInt((color.value ?? '0'), 16));
 const red = computed({
     get: () => (colorNum.value >> 16) & 0xff,
     set: val => color.value = rgbToHex(white.value, val, green.value, blue.value),
@@ -107,7 +107,7 @@ const white = computed({
             :style="{
                 left: pickerPos[0] + 'px',
                 top: pickerPos[1] + 'px',
-                backgroundColor: '#' + (color ?? '').slice(3) + 'aa',
+                backgroundColor: '#' + (color ?? '').slice(2) + 'aa',
             }"
         />
     </div>

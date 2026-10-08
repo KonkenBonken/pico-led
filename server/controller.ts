@@ -201,3 +201,5 @@ export default function getController(req: Bun.BunRequest) {
     if (!(strip in strips)) throw 'Strip not found';
     return strips[strip as 'ws2812'];
 }
+
+export const allStrips = Object.values(strips);

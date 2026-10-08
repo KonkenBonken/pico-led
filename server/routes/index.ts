@@ -1,5 +1,5 @@
 import { animationExists } from '../animations';
-import getController from '../controller';
+import getController, {allStrips} from '../controller';
 import { once } from 'events';
 
 const Status = (status: number) => new Response(null, { status });
@@ -11,6 +11,18 @@ Bun.serve({
         '/': () => new Response(Bun.file('routes/dist/index.html')),
         '/assets/:file': req =>
             new Response(Bun.file('routes/dist/assets/' + req.params.file)),
+
+        '/api/turnOff': () => {
+            allStrips.forEach(c => c.turnOff());
+            return Status(200);
+        },
+
+        '/api/startFade/:value': req => {
+            const value = parseInt(req.params.value);
+            if (!Number.isInteger(value) || value < 0) return Status(400);
+            allStrips.forEach(c => c.startFade(value));
+            return Status(200);
+        },
 
         '/api/:strip/turnOff': (req) => {
             getController(req).turnOff();

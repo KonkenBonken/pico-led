@@ -76,7 +76,6 @@ const Animations = {
             
             def f():
                 buf = bytearray(${c.LED_COUNT * channels})
-                frame = 1
                 
                 while True:
                     color = getrandbits(${8 * channels}).to_bytes(${channels}) 

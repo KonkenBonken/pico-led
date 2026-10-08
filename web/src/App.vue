@@ -213,7 +213,7 @@ footer {
 
     > input {
         all: unset;
-        width: 200px;
+        width: min(200px, 40vw);
         height: 50px;
         display: inline-block;
         position: relative;

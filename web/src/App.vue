@@ -91,7 +91,7 @@ const warmWhite = () => fetchApi('solidColor/ff000000');
         </div>
         <FontAwesomeIcon @click="turnOff" :icon="faPowerOff" />
     </header>
-    <ColorPicker v-model="color" />
+    <ColorPicker v-model="color" :supportsRGBW="supportsRGBW" />
     <AnimationButton
         v-for="animation in animations"
         :animation="animation"

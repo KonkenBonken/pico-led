@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 
+defineProps<{ supportsRGBW: boolean; }>();
+
 const color = defineModel<string>();
 const pickerPos = ref<[number, number]>([0, 0]);
 
-function rgbToHex(r: number, g: number, b: number) {
+function rgbToHex(w: number, r: number, g: number, b: number) {
     return '#' +
+        w.toString(16).padStart(2, '0') +
         r.toString(16).padStart(2, '0') +
         g.toString(16).padStart(2, '0') +
         b.toString(16).padStart(2, '0');
@@ -71,15 +74,16 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
     clrG = Math.round(clrG * cw + 255 * ww);
     clrB = Math.round(clrB * cw + 255 * ww);
 
-    color.value = rgbToHex(clrR, clrG, clrB);
+    color.value = rgbToHex(0, clrR, clrG, clrB);
 }
 
 const red = ref(0);
 const green = ref(0);
 const blue = ref(0);
+const white = ref(0);
 
-watch([red, green, blue], ([clrR, clrG, clrB]) =>
-    color.value = rgbToHex(clrR, clrG, clrB)
+watch([red, green, blue, white], ([clrR, clrG, clrB, clrW]) =>
+    color.value = rgbToHex(clrW, clrR, clrG, clrB)
 );
 </script>
 
@@ -97,6 +101,8 @@ watch([red, green, blue], ([clrR, clrG, clrB]) =>
     <input type="range" class="clr-slider" id="slider-red" :min="0" :max="255" :step="1" v-model.number="red" />
     <input type="range" class="clr-slider" id="slider-green" :min="0" :max="255" :step="1" v-model.number="green" />
     <input type="range" class="clr-slider" id="slider-blue" :min="0" :max="255" :step="1" v-model.number="blue" />
+    <input type="range" class="clr-slider" id="slider-white" :min="0" :max="255" :step="1" v-model.number="white"
+           v-if="supportsRGBW" />
 </template>
 
 <style lang="scss">
@@ -178,6 +184,14 @@ watch([red, green, blue], ([clrR, clrG, clrB]) =>
 
     &::-webkit-slider-thumb, :has(.clr-slider:active) > & {
         background: color-mix(in hsl, rgb(40, 40, 255) calc(100% / 255 * v-bind(blue)), $clr-surface-a0);
+    }
+}
+
+#slider-white {
+    background: linear-gradient(to right, $clr-surface-a0, rgb(255, 235, 205));
+
+    &::-webkit-slider-thumb, :has(.clr-slider:active) > & {
+        background: color-mix(in hsl, rgb(255, 235, 205) calc(100% / 255 * v-bind(white)), $clr-surface-a0);
     }
 }
 </style>

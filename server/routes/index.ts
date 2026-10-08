@@ -58,7 +58,10 @@ Bun.serve({
             const controller = getController(req);
             controller.fadeDuration = -duration;
             controller.fadeStart = +date;
-            if (value === 0) controller.fadeDuration = Infinity;
+            if (value === 0) {
+                controller.fadeDuration = Infinity;
+                controller.pingDuration = 10e3;
+            }
 
             return Status(200);
         },

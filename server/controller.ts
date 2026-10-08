@@ -87,10 +87,16 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         this.fadeDuration = duration;
         this.fadeStart = now;
 
+        if (this.currentState.value.type === 'solidcolor') {
+            this.pingDuration = 2 * 1000 / this.FRAME_RATE;
+            this.currentState.value = { ...this.currentState.value };
+        }
+
         setTimeout(() => {
             if (this.fadeStart !== now) return;
             this.currentState.value = offState;
             this.fadeDuration = Infinity;
+            this.pingDuration = 10e3;
         }, duration + 200);
     }
 
@@ -136,11 +142,12 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         );
     }
 
+    pingDuration = 10e3;
     private readonly pingInterval = ref<NodeJS.Timeout | null>(null);
 
     sendFrame(_frame = this.newFrame()) {
         this.emit('frame', _frame);
-        this.pingInterval.value = setTimeout(() => this.sendFrame(_frame), 10e3);
+        this.pingInterval.value = setTimeout(() => this.sendFrame(_frame), this.pingDuration);
 
         const frame = _frame.copy();
         frame.scale((this.brightness.value / 256) * this.fadeBrightness);

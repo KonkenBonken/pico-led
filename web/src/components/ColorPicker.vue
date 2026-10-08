@@ -77,7 +77,7 @@ function onColorPress(e: { clientX: number, clientY: number, currentTarget: Even
     clrG = Math.round(clrG * cw + 255 * ww);
     clrB = Math.round(clrB * cw + 255 * ww);
 
-    color.value = rgbToHex(0, clrR, clrG, clrB);
+    color.value = rgbToHex(white.value, clrR, clrG, clrB);
 }
 
 const colorNum = computed(() => parseInt((color.value ?? '0'), 16));

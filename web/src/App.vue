@@ -14,13 +14,18 @@ import AnimationButton from './components/AnimationButton.vue';
 const renderPeek = ref(false);
 
 const allStrips = ['ws2812', 'sk6812'];
-const selectedStrips = ref(new Set(allStrips));
+const selectedStrips = ref(new Set(['ws2812']));
 
 function toggleStrip(strip: string) {
     if (selectedStrips.value.has(strip))
         selectedStrips.value.delete(strip);
     else
         selectedStrips.value.add(strip);
+
+    if (!selectedStrips.value.size) {
+        selectedStrips.value = new Set(allStrips);
+        selectedStrips.value.delete(strip);
+    }
 }
 
 function fetchApi(route: string) {

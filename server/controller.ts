@@ -29,7 +29,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly brightness = ref(16);
     speed = 128;
 
-    constructor(readonly LED_COUNT: number, readonly WHITE = false, readonly RICH_UDP = false) {
+    constructor(readonly IP: string, readonly LED_COUNT: number, readonly WHITE = false, readonly RICH_UDP = false) {
         super();
         this.FRAME_RATE = this.maxFrameRate * 0.9;
 
@@ -158,7 +158,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 
     sendBuffer(buffer: Uint8ClampedArray) {
-        this.socket.send(buffer, 0, buffer.length, 12345, '192.168.0.16');
+        this.socket.send(buffer, 0, buffer.length, 12345, this.IP);
     }
 
     toJSON() {
@@ -171,4 +171,13 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     }
 }
 
-export default new Controller(180, false);
+export const strips = {
+    ws2812: new Controller('192.168.0.16', 180, false, false),
+    sk6812: new Controller('192.168.0.2', 120, true, true)
+}
+
+export default function getController(req: Bun.BunRequest) {
+    const strip = (req.params as { strip: string }).strip;
+    if (!(strip in strips)) throw 'Strip not found';
+    return strips[strip as 'ws2812'];
+}

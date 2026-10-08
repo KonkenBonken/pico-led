@@ -124,7 +124,7 @@ export function animationExists(name: string): name is keyof typeof Animations {
 export function getFramePreview(
     animation: (typeof Animations)[keyof typeof Animations]
 ) {
-    const c = new Controller(('previewSize' in animation) ? animation.previewSize : 45);
+    const c = new Controller('', ('previewSize' in animation) ? animation.previewSize : 45);
     if ('previewFrame' in animation) c.speed = animation.previewFrame;
     else c.speed = 0;
 

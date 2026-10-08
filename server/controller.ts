@@ -29,7 +29,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     readonly brightness = ref(16);
     speed = 128;
 
-    constructor(readonly LED_COUNT: number, readonly WHITE = false) {
+    constructor(readonly LED_COUNT: number, readonly WHITE = false, readonly RICH_UDP = false) {
         super();
         this.FRAME_RATE = this.maxFrameRate * 0.9;
 
@@ -97,7 +97,7 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
     startAnimation(name: keyof typeof Animations) {
         clearTimeout(this.animationInterval);
         const animation = Animations[name];
-        if ('microFunction' in animation)
+        if ('microFunction' in animation && this.RICH_UDP)
             this.currentState.value = {
                 type: 'microfunction',
                 codeBuffer: animation.microFunction(this).buffer
@@ -142,6 +142,9 @@ export class Controller extends EventEmitter<{ frame: [Frame] }> {
         frame.scale((this.brightness.value / 256) * this.fadeBrightness);
 
         const buffer = this.WHITE ? frame.toGrbw() : frame.toGrb();
+
+        if (!this.RICH_UDP)
+            return this.sendBuffer(buffer);
 
         const flaggedBuffer = new Uint8ClampedArray(buffer.length + 1);
         flaggedBuffer.set(buffer, 1);
